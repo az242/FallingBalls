@@ -12,8 +12,10 @@ public class ArrayChat {
 	private ArrayList<Message> chat;
 	private int maxsize;
 	private Font font;
-	public ArrayChat(int x, int y,int x2, int y2,int size){ // default font used
+	private boolean fading;
+	public ArrayChat(int x, int y,int x2, int y2,int size,boolean fading){ // default font used
 		chat = new ArrayList<Message>();
+		this.fading=fading;
 		maxsize = size;
 		x1=x;this.x2=x2;
 		this.y1=y;this.y2=y2;
@@ -29,9 +31,11 @@ public class ArrayChat {
 		}
 		font = new Font("Arial", Font.PLAIN, 12);
 	}
-	public ArrayChat(int x, int y,int x2, int y2,int size,Font font){ //user prompted font used
+	
+	public ArrayChat(int x, int y,int x2, int y2,int size,boolean fading,Font font){ //user prompted font used
 		chat = new ArrayList<Message>();
 		maxsize = size;
+		this.fading=fading;
 		this.font = font;
 		x1=x;this.x2=x2;
 		this.y1=y;this.y2=y2;
@@ -47,6 +51,8 @@ public class ArrayChat {
 		}
 	}
 	public void addMessage(Message temp){
+		if(!fading)
+			temp.freeze();
 		chat.add(temp);
 	}
 	public void draw(Graphics g){
@@ -66,11 +72,21 @@ public class ArrayChat {
 			}else{
 				//draw message into chat box;
 				Color temp=chat.get(chatEntry).userColor;
-				g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),chat.get(chatEntry).getAlpha()));
+				if(fading)
+					g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),chat.get(chatEntry).getAlpha()));
+				else
+					g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue()));
+				//g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),chat.get(chatEntry).getAlpha()));
 				java.awt.geom.Rectangle2D rect2 = fm.getStringBounds(chat.get(chatEntry).getUsername(), g);
 				
 				g.drawString(chat.get(chatEntry).getUsername(), x1, (int) (y2-((offset)*rect.getHeight())));
-				g.setColor(new Color(0,0,0,chat.get(chatEntry).getAlpha()));
+				if(chat.get(chatEntry).getMessage().length()<=0){
+					return;
+				}
+				if(fading)
+					g.setColor(new Color(0,0,0,chat.get(chatEntry).getAlpha()));
+				else
+					g.setColor(Color.BLACK);
 				g.drawString(chat.get(chatEntry).getFMessage(), (int) (x1+rect2.getWidth()), (int) (y2-((offset)*rect.getHeight())));
 				//g.drawLine(x1, (int)(y2-((offset)*rect.getHeight())), (int) (x1+rect2.getWidth()),(int) (y2-((offset)*rect.getHeight())));
 			}
@@ -83,6 +99,8 @@ public class ArrayChat {
 		return components;
 	}
 	public void reset(){
+		if(!fading)
+			return;
 		for(int x=chat.size()-1,temp=0;x>=0 && temp<maxsize;x--,temp++){
 			chat.get(x).reset();
 		}

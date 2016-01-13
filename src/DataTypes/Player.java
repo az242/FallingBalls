@@ -5,6 +5,7 @@ public class Player {
 	String username;
 	Power power;
 	String ID;
+	long lastTimeSeen;
 	public Player(int x,int y, String username, Power power){
 		this.x=x;
 		this.y=y;

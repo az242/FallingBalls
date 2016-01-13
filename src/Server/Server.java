@@ -25,6 +25,7 @@ import Chat.Message;
 import DataTypes.Player;
 public class Server extends Applet implements MouseListener,ActionListener,MouseMotionListener{
 	ArrayChat serverLog;
+	
 	ArrayList<Player> players = new ArrayList<Player>();
 	ServerConnection interwebs;
 	public Server(){
@@ -32,7 +33,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		setSize(1000,500);
-		serverLog = new ArrayChat(200,0,600,450,50);
+		serverLog = new ArrayChat(200,0,600,450,32,true);
 		serverLog.addMessage(new Message("System", "Start Up"));
 		Timer myTimer;
 		myTimer=new Timer(50, this);
@@ -81,17 +82,19 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		final String Connect = "Connect";
 		final String Disconnect = "Disconnect";
 		final String Cords = "C";
+		final String Chat = "CH";
+		final String Move = "M";
 		final String Power = "P";
 		public void process(String data[]){
 			//slot 0 is time
 			int currentPosition=1;
 			while(currentPosition<data.length-1){
 				if(data[currentPosition].equals(Cords)){
-					//name x y
-					currentPosition = currentPosition+3;
+					//name x y time
+					currentPosition = currentPosition+4;
 				}else if(data[currentPosition].equals(Power)){
-					//name x y power
-					currentPosition = currentPosition+3;
+					//name x y power time
+					currentPosition = currentPosition+5;
 				}else if(data[currentPosition].equals(Connect)){
 					//name time
 					serverLog.addMessage(new Message("System", data[currentPosition+1] + " has connected to server."));
@@ -100,6 +103,9 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					//name
 					serverLog.addMessage(new Message("System", data[currentPosition+1] + " has Disconnected from the server."));
 					currentPosition = currentPosition+1;
+				}else if(data[currentPosition].equals(Chat)){
+					//name message time
+					currentPosition = currentPosition+3;
 				}
 			}
 			//keys pressed

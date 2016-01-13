@@ -30,7 +30,12 @@ public class Message implements ActionListener{
 		alpha = stopwatch ;
 		myTimer=new Timer(30, this);
 		myTimer.start();
-		
+	}
+	public void freeze(){
+		myTimer.stop();
+	}
+	public String getMessage(){
+		return message;
 	}
 	public int getAlpha(){
 		if(alpha>255){
