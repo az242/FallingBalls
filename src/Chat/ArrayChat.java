@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class ArrayChat {
 	private int x1,x2;
 	private int y1,y2;
-	private ArrayList<Message> chat;
+	public ArrayList<Message> chat;
 	private int maxsize;
 	private Font font;
 	private boolean fading;
@@ -54,6 +54,9 @@ public class ArrayChat {
 		if(!fading)
 			temp.freeze();
 		chat.add(temp);
+	}
+	public ArrayList<Message> getMessages(){
+		return chat;
 	}
 	public void draw(Graphics g){
 		g.drawRect(x1, y1, x2-x1, y2-y1);

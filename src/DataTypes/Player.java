@@ -1,13 +1,17 @@
 package DataTypes;
 
+import java.net.InetAddress;
+
 public class Player {
 	int x,y;
 	String username;
 	Power power;
 	String ID;
 	long lastTimeSeen;
-	public Player(int x,int y, String username, Power power){
+	InetAddress  IP;
+	public Player(int x,int y, String username, Power power,InetAddress ip){
 		this.x=x;
+		this.IP=ip;
 		this.y=y;
 		this.username=username;
 		this.power=power;

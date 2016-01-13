@@ -12,6 +12,7 @@ import java.awt.event.MouseMotionListener;
 import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -23,9 +24,10 @@ import javax.swing.Timer;
 import Chat.ArrayChat;
 import Chat.Message;
 import DataTypes.Player;
+import DataTypes.Power;
 public class Server extends Applet implements MouseListener,ActionListener,MouseMotionListener{
 	ArrayChat serverLog;
-	
+	ArrayChat userList;
 	ArrayList<Player> players = new ArrayList<Player>();
 	ServerConnection interwebs;
 	public Server(){
@@ -33,7 +35,8 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		setSize(1000,500);
-		serverLog = new ArrayChat(200,0,600,450,32,true);
+		userList = new ArrayChat(600,0, 700,450,32,false);//used to display stuff about users
+		serverLog = new ArrayChat(200,0,600,450,32,true);// magic number 32 for max chat entries displayed
 		serverLog.addMessage(new Message("System", "Start Up"));
 		Timer myTimer;
 		myTimer=new Timer(50, this);
@@ -73,7 +76,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					serverSock.receive(receivePacket);
 					String data = new String(receivePacket.getData());
 					//do something with ddata
-					process(data.split(" "));
+					process(data.split(" "),receivePacket.getAddress());
 				} 
 			}catch (Exception ex){
 				serverLog.addMessage(new Message("ERROR", ex.getMessage(),Color.RED));
@@ -85,27 +88,47 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		final String Chat = "CH";
 		final String Move = "M";
 		final String Power = "P";
-		public void process(String data[]){
+		public void process(String data[], InetAddress inetAddress){
 			//slot 0 is time
-			int currentPosition=1;
-			while(currentPosition<data.length-1){
-				if(data[currentPosition].equals(Cords)){
-					//name x y time
-					currentPosition = currentPosition+4;
-				}else if(data[currentPosition].equals(Power)){
-					//name x y power time
-					currentPosition = currentPosition+5;
-				}else if(data[currentPosition].equals(Connect)){
-					//name time
-					serverLog.addMessage(new Message("System", data[currentPosition+1] + " has connected to server."));
-					currentPosition = currentPosition+2;
-				}else if(data[currentPosition].equals(Disconnect)){
+			int CP=1;
+			while(CP<data.length-1){
+				if(data[CP].equals(Cords)){
+					//name x y
+					for(int x=0;x<players.size();x++){
+						if(players.get(x).getName().equals(data[CP+1])){
+							int[] test = {Integer.parseInt(data[CP+1]),Integer.parseInt(data[CP+2])};
+							players.get(x).setCords(test);
+							userList.chat.get(x).setMessage(test[0]+", "+test[1]);
+						}
+					}
+					//SEND DATA TO ALL OTHER PLAYERS
+					CP = CP+4;
+				}else if(data[CP].equals(Power)){
+					//name x y power
+					CP = CP+5;
+				}else if(data[CP].equals(Connect)){
+					//name x y R G B power
+					serverLog.addMessage(new Message("System", data[CP+1] + " has connected to server."));
+					players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),inetAddress));
+					userList.addMessage(new Message(data[CP+1], data[CP+2] +", "+ data[CP+3],new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6])) ));
+					//send data to all players
+					CP = CP+8;
+				}else if(data[CP].equals(Disconnect)){
 					//name
-					serverLog.addMessage(new Message("System", data[currentPosition+1] + " has Disconnected from the server."));
-					currentPosition = currentPosition+1;
-				}else if(data[currentPosition].equals(Chat)){
-					//name message time
-					currentPosition = currentPosition+3;
+					for(int x=0;x<players.size();x++){
+						if(players.get(x).getName().equals(data[CP+1])){
+							players.remove(x);
+							userList.chat.remove(x);
+						}
+					}
+					//send data to all players
+					serverLog.addMessage(new Message("System", data[CP+1] + " has Disconnected from the server."));
+					CP = CP+2;
+				}else if(data[CP].equals(Chat)){
+					//name message R G B
+					serverLog.addMessage(new Message(data[CP+1],data[CP+2],new Color(Integer.parseInt(data[CP+3]),Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]))));
+					//send data to all other players
+					CP = CP+6;
 				}
 			}
 			//keys pressed
@@ -142,6 +165,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	public void paint(Graphics g){
 		setSize(1000,500);
 		serverLog.draw(g);
+		userList.draw(g);
 	}
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
@@ -207,6 +231,18 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			}
 		}
 		return hex;
+	}
+	public Power getPower(int x){
+		switch(x){
+		case 0:
+			return Power.Wall;
+		case 1:
+			return Power.Invincibility;
+		case 2:
+			return Power.Wormhole;
+		default:
+			return null;
+		}
 	}
 	@Override
 	public void mouseDragged(MouseEvent arg0) {

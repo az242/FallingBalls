@@ -34,6 +34,9 @@ public class Message implements ActionListener{
 	public void freeze(){
 		myTimer.stop();
 	}
+	public void setMessage(String newMessage){
+		message = newMessage;
+	}
 	public String getMessage(){
 		return message;
 	}
