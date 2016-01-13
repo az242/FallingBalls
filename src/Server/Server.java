@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -69,14 +70,13 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			else
 				return;
 			try {
-				byte[] receiveData = new byte[10240];
-				byte[] sendData = new byte[10240];
+				byte[] receiveData = new byte[1024];
 				while (run) {
 					DatagramPacket receivePacket = new DatagramPacket(receiveData,receiveData.length);
 					serverSock.receive(receivePacket);
 					String data = new String(receivePacket.getData());
 					//do something with ddata
-					process(data.split(" "),receivePacket.getAddress());
+					process(data.split(" "),receivePacket.getAddress(),receivePacket.getPort());
 				} 
 			}catch (Exception ex){
 				serverLog.addMessage(new Message("ERROR", ex.getMessage(),Color.RED));
@@ -88,30 +88,33 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		final String Chat = "CH";
 		final String Move = "M";
 		final String Power = "P";
-		public void process(String data[], InetAddress inetAddress){
+		public void process(String data[], InetAddress inetAddress,int port){
 			//slot 0 is time
 			int CP=1;
 			while(CP<data.length-1){
 				if(data[CP].equals(Cords)){
 					//name x y
 					for(int x=0;x<players.size();x++){
-						if(players.get(x).getName().equals(data[CP+1])){
+						if(players.get(x).getName().equals(data[CP+1]) && Long.parseLong(data[0])-players.get(x).lastTimeSeen>0){
 							int[] test = {Integer.parseInt(data[CP+1]),Integer.parseInt(data[CP+2])};
 							players.get(x).setCords(test);
 							userList.chat.get(x).setMessage(test[0]+", "+test[1]);
 						}
 					}
+					send(data[0] + data[CP]+ data[CP+1]+ data[CP+2]+ data[CP+3]);
 					//SEND DATA TO ALL OTHER PLAYERS
 					CP = CP+4;
 				}else if(data[CP].equals(Power)){
 					//name x y power
+					send(data[0] + data[CP]+ data[CP+1]+ data[CP+2]+ data[CP+3]+data[CP+4]);
 					CP = CP+5;
 				}else if(data[CP].equals(Connect)){
 					//name x y R G B power
 					serverLog.addMessage(new Message("System", data[CP+1] + " has connected to server."));
-					players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),inetAddress));
+					players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),inetAddress,port));
 					userList.addMessage(new Message(data[CP+1], data[CP+2] +", "+ data[CP+3],new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6])) ));
 					//send data to all players
+					send(data[0]+data[CP] + data[CP+1]+ data[CP+2]+ data[CP+3]+ data[CP+4]+data[CP+5]+data[CP+6]+data[CP+7]);
 					CP = CP+8;
 				}else if(data[CP].equals(Disconnect)){
 					//name
@@ -121,6 +124,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 							userList.chat.remove(x);
 						}
 					}
+					send(data[0] + data[CP]+ data[CP+1]);
 					//send data to all players
 					serverLog.addMessage(new Message("System", data[CP+1] + " has Disconnected from the server."));
 					CP = CP+2;
@@ -128,12 +132,25 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					//name message R G B
 					serverLog.addMessage(new Message(data[CP+1],data[CP+2],new Color(Integer.parseInt(data[CP+3]),Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]))));
 					//send data to all other players
+					send(data[0] + data[CP]+ data[CP+1]+ data[CP+2]+ data[CP+3]+data[CP+4] + data[CP+5]);
 					CP = CP+6;
 				}
 			}
-			//keys pressed
-			
-			
+		}
+		
+		public void send(String data){
+			byte[] sendData = new byte[1024];
+			for(int x=0;x<players.size();x++){
+				sendData= data.getBytes();
+				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, players.get(x).getIP(),players.get(x).getPort());
+				try {
+					serverSock.send(sendPacket);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					serverLog.addMessage(new Message("ERROR", e.getMessage(),Color.RED));
+					
+				}
+			}
 		}
 	}
 	private Image dbImage; 

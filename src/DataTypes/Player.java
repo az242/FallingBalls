@@ -7,9 +7,11 @@ public class Player {
 	String username;
 	Power power;
 	String ID;
-	long lastTimeSeen;
+	public long lastTimeSeen;
 	InetAddress  IP;
-	public Player(int x,int y, String username, Power power,InetAddress ip){
+	int port;
+	public Player(int x,int y, String username, Power power,InetAddress ip,int port){
+		this.port=port;
 		this.x=x;
 		this.IP=ip;
 		this.y=y;
@@ -17,12 +19,20 @@ public class Player {
 		this.power=power;
 		//this.ID=ID;
 	}
-	public Player(int x, int y,String username, Power power,String ID){
+	public Player(int x, int y,String username, Power power,String ID,InetAddress ip,int port){
+		this.port=port;
+		this.IP=ip;
 		this.x=x;
 		this.y=y;
 		this.username=username;
 		this.power=power;
 		this.ID=ID;
+	}
+	public int getPort(){
+		return port;
+	}
+	public InetAddress getIP(){
+		return IP;
 	}
 	public Power getPower(){
 		return power;
