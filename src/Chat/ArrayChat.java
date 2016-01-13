@@ -59,6 +59,7 @@ public class ArrayChat {
 		return chat;
 	}
 	public void draw(Graphics g){
+		g.setColor(Color.BLACK);
 		g.drawRect(x1, y1, x2-x1, y2-y1);
 		g.setFont(font);
 		for(int offset = 0,chatEntry=chat.size()-1;chatEntry>=0 && offset<maxsize;chatEntry--,offset++){

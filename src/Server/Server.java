@@ -29,14 +29,15 @@ import DataTypes.Power;
 public class Server extends Applet implements MouseListener,ActionListener,MouseMotionListener{
 	ArrayChat serverLog;
 	ArrayChat userList;
-	ArrayList<Player> players = new ArrayList<Player>();
+	ArrayList<Player> players;
 	ServerConnection interwebs;
 	public Server(){
 		setFocusable(true);
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		setSize(1000,500);
-		userList = new ArrayChat(600,0, 700,450,32,false);//used to display stuff about users
+		players = new ArrayList<Player>();
+		userList = new ArrayChat(600,0, 750,450,32,false);//used to display stuff about users
 		serverLog = new ArrayChat(200,0,600,450,32,true);// magic number 32 for max chat entries displayed
 		serverLog.addMessage(new Message("System", "Start Up"));
 		Timer myTimer;
@@ -58,7 +59,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 				serverLog.addMessage(new Message("System", "Socket Established"));
 			} catch (SocketException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				//e.printStackTrace();
 				serverLog.addMessage(new Message("ERROR", e.getMessage(),Color.RED));
 				run= false;
 			}
@@ -74,10 +75,13 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 				while (run) {
 					DatagramPacket receivePacket = new DatagramPacket(receiveData,receiveData.length);
 					serverSock.receive(receivePacket);
-					String data = new String(receivePacket.getData());
+					String data = new String(receivePacket.getData()).trim();
 					//do something with ddata
-					process(data.split(" "),receivePacket.getAddress(),receivePacket.getPort());
+					//System.out.println(data);
+					process(data.split("~"),receivePacket.getAddress(),receivePacket.getPort());
+					receiveData = new byte[1024];
 				} 
+				System.out.println("Something went wrong");
 			}catch (Exception ex){
 				serverLog.addMessage(new Message("ERROR", ex.getMessage(),Color.RED));
 			}
@@ -101,20 +105,31 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 							userList.chat.get(x).setMessage(test[0]+", "+test[1]);
 						}
 					}
-					send(data[0] + data[CP]+ data[CP+1]+ data[CP+2]+ data[CP+3]);
+					send(data[0] +"~"+ data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~");
 					//SEND DATA TO ALL OTHER PLAYERS
 					CP = CP+4;
 				}else if(data[CP].equals(Power)){
 					//name x y power
-					send(data[0] + data[CP]+ data[CP+1]+ data[CP+2]+ data[CP+3]+data[CP+4]);
+					send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4]+"~");
 					CP = CP+5;
 				}else if(data[CP].equals(Connect)){
 					//name x y R G B power
-					serverLog.addMessage(new Message("System", data[CP+1] + " has connected to server."));
-					players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),inetAddress,port));
-					userList.addMessage(new Message(data[CP+1], data[CP+2] +", "+ data[CP+3],new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6])) ));
+					boolean accept=true;
+					for(int x=0;x<players.size();x++){
+						if(players.get(x).getName().equals(data[CP+1])){
+							accept=false;
+						}
+					}
+					if(accept){
+						serverLog.addMessage(new Message("System", data[CP+1] + " has connected to server."));
+						players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),inetAddress,port));
+						userList.addMessage(new Message(data[CP+1], data[CP+2] +", "+ data[CP+3],new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6])) ));
+						send(data[0]+"~"+data[CP]+"~" + data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+ data[CP+4]+"~"+data[CP+5]+"~"+data[CP+6]+"~"+data[CP+7]+"~");
+					}else{
+						serverLog.addMessage(new Message("System","User tried to connect with " + data[CP+1] + ", already exists!"));
+						send(System.currentTimeMillis() +" Failed "+data[CP+1],inetAddress,port);
+					}
 					//send data to all players
-					send(data[0]+data[CP] + data[CP+1]+ data[CP+2]+ data[CP+3]+ data[CP+4]+data[CP+5]+data[CP+6]+data[CP+7]);
 					CP = CP+8;
 				}else if(data[CP].equals(Disconnect)){
 					//name
@@ -124,7 +139,8 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 							userList.chat.remove(x);
 						}
 					}
-					send(data[0] + data[CP]+ data[CP+1]);
+					//System.out.println("test 1");
+					send(data[0] +"~"+ data[CP]+"~"+ data[CP+1]+"~");
 					//send data to all players
 					serverLog.addMessage(new Message("System", data[CP+1] + " has Disconnected from the server."));
 					CP = CP+2;
@@ -132,12 +148,24 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					//name message R G B
 					serverLog.addMessage(new Message(data[CP+1],data[CP+2],new Color(Integer.parseInt(data[CP+3]),Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]))));
 					//send data to all other players
-					send(data[0] + data[CP]+ data[CP+1]+ data[CP+2]+ data[CP+3]+data[CP+4] + data[CP+5]);
+					send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4] +"~"+ data[CP+5]+"~");
 					CP = CP+6;
 				}
+				
 			}
 		}
-		
+		public void send(String data, InetAddress ip,int port){
+			byte[] sendData = new byte[1024];
+			sendData = data.getBytes();
+			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip,port);
+			try {
+				serverSock.send(sendPacket);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				serverLog.addMessage(new Message("ERROR", e.getMessage(),Color.RED));
+				
+			}
+		}
 		public void send(String data){
 			byte[] sendData = new byte[1024];
 			for(int x=0;x<players.size();x++){

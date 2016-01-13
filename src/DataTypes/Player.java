@@ -19,14 +19,11 @@ public class Player {
 		this.power=power;
 		//this.ID=ID;
 	}
-	public Player(int x, int y,String username, Power power,String ID,InetAddress ip,int port){
-		this.port=port;
-		this.IP=ip;
+	public Player(int x, int y,String username, Power power){
 		this.x=x;
 		this.y=y;
 		this.username=username;
 		this.power=power;
-		this.ID=ID;
 	}
 	public int getPort(){
 		return port;
