@@ -41,19 +41,21 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		serverLog = new ArrayChat(200,0,600,450,32,true);// magic number 32 for max chat entries displayed
 		serverLog.addMessage(new Message("System", "Start Up"));
 		Timer myTimer;
-		myTimer=new Timer(50, this);
+		myTimer=new Timer(30, this);
 		myTimer.start();
 	}
+	ServerConnection comm;
 	public void startServer(){
-		Thread servertest=new Thread(new ServerConnection(9999));
+		 comm = new ServerConnection(9999);
+		Thread servertest=new Thread(comm);
 		servertest.start();
 	}
 	public class ServerConnection implements Runnable{
-		boolean run;
+		public boolean run;
 		DatagramSocket serverSock;
 		public ServerConnection(int port){
 			serverLog.addMessage(new Message("System", "Attempting to start socket at port "+port));
-			run = true;
+			
 			 try {
 				serverSock = new DatagramSocket(port);
 				serverLog.addMessage(new Message("System", "Socket Established"));
@@ -63,6 +65,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 				serverLog.addMessage(new Message("ERROR", e.getMessage(),Color.RED));
 				run= false;
 			}
+			 run = true;
 		}
 		@Override
 		public void run() {
@@ -77,7 +80,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					serverSock.receive(receivePacket);
 					String data = new String(receivePacket.getData()).trim();
 					//do something with ddata
-					//System.out.println(data);
+					System.out.println(data);
 					process(data.split("~"),receivePacket.getAddress(),receivePacket.getPort());
 					receiveData = new byte[1024];
 				} 
@@ -101,16 +104,16 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					for(int x=0;x<players.size();x++){
 						if(players.get(x).getName().equals(data[CP+1]) && Long.parseLong(data[0])-players.get(x).lastTimeSeen>0){
 							int[] test = {Integer.parseInt(data[CP+1]),Integer.parseInt(data[CP+2])};
-							players.get(x).setCords(test);
+							players.get(x).setCords(test[0],test[1]);
 							userList.chat.get(x).setMessage(test[0]+", "+test[1]);
 						}
 					}
-					send(data[0] +"~"+ data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~");
+					send(data[0] +"~"+ data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]);
 					//SEND DATA TO ALL OTHER PLAYERS
 					CP = CP+4;
 				}else if(data[CP].equals(Power)){
 					//name x y power
-					send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4]+"~");
+					send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4]);
 					CP = CP+5;
 				}else if(data[CP].equals(Connect)){
 					//name x y R G B power
@@ -124,10 +127,17 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 						serverLog.addMessage(new Message("System", data[CP+1] + " has connected to server."));
 						players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),inetAddress,port));
 						userList.addMessage(new Message(data[CP+1], data[CP+2] +", "+ data[CP+3],new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6])) ));
-						send(data[0]+"~"+data[CP]+"~" + data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+ data[CP+4]+"~"+data[CP+5]+"~"+data[CP+6]+"~"+data[CP+7]+"~");
+						send(data[0]+"~"+data[CP]+"~" + data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+ data[CP+4]+"~"+data[CP+5]+"~"+data[CP+6]+"~"+data[CP+7]);
+						String temp=System.currentTimeMillis()+"";
+						for(int x=0;x<players.size()-1;x++){
+							temp = temp + "~Succ~"+players.get(x).getName()+"~"+players.get(x).getX()+"~"+players.get(x).getY()+"~"+players.get(x).getColor().getRed()+"~"+players.get(x).getColor().getGreen()+"~"+players.get(x).getColor().getBlue();
+						}
+						if(players.size()>1)
+							send(temp,inetAddress ,port); 
 					}else{
 						serverLog.addMessage(new Message("System","User tried to connect with " + data[CP+1] + ", already exists!"));
-						send(System.currentTimeMillis() +" Failed "+data[CP+1],inetAddress,port);
+						send(System.currentTimeMillis() +"~"+"Failed"+"~"+data[CP+1],inetAddress,port);
+						
 					}
 					//send data to all players
 					CP = CP+8;
@@ -140,7 +150,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 						}
 					}
 					//System.out.println("test 1");
-					send(data[0] +"~"+ data[CP]+"~"+ data[CP+1]+"~");
+					send(data[0] +"~"+ data[CP]+"~"+ data[CP+1]);
 					//send data to all players
 					serverLog.addMessage(new Message("System", data[CP+1] + " has Disconnected from the server."));
 					CP = CP+2;
@@ -148,10 +158,45 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					//name message R G B
 					serverLog.addMessage(new Message(data[CP+1],data[CP+2],new Color(Integer.parseInt(data[CP+3]),Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]))));
 					//send data to all other players
-					send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4] +"~"+ data[CP+5]+"~");
+					send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4] +"~"+ data[CP+5]);
 					CP = CP+6;
+				}else if(data[CP].equals(Move)){
+					//name keyPress
+					for(int x=0;x<players.size();x++){
+						if(players.get(x).getName().equals(data[CP+1])){
+							switch(data[CP+2]){
+							case "WPress":
+								players.get(x).startJump();
+								break;
+							case "APress":
+								players.get(x).setDx(-100);
+								break;
+							case "SPress":
+								break;
+							case "DPress":
+								players.get(x).setDx(100);
+								break;
+							case "WRelease":
+								//nothing
+								break;
+							case "ARelease":
+								if(players.get(x).getDx()==-100)
+									players.get(x).setDx(0);
+								break;
+							case "SRelease":
+								break;
+							case "DRelease":
+								if(players.get(x).getDx()==100)
+									players.get(x).setDx(0);
+								break;
+							}
+						}
+					}
+					CP = CP +2;
+				}else{
+					CP = CP++;
+					//Couldn't find anything!
 				}
-				
 			}
 		}
 		public void send(String data, InetAddress ip,int port){
@@ -168,8 +213,8 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		}
 		public void send(String data){
 			byte[] sendData = new byte[1024];
+			sendData= data.getBytes();
 			for(int x=0;x<players.size();x++){
-				sendData= data.getBytes();
 				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, players.get(x).getIP(),players.get(x).getPort());
 				try {
 					serverSock.send(sendPacket);
@@ -216,6 +261,26 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	public void actionPerformed(ActionEvent arg0) {
 		// TODO Auto-generated method stub
 		repaint();
+		double delta= (double)getDelta()/1000;
+		String message=""+System.currentTimeMillis();
+		//System.out.println(delta);
+		for(int x=0;x<players.size();x++){
+			players.get(x).setCords((int) (players.get(x).getX()+((double)players.get(x).getDx()*delta)),players.get(x).getY()+players.get(x).getDy());
+			if(players.get(x).isJumping()){
+				if(players.get(x).getDy()==10){
+					players.get(x).setCords(players.get(x).getX(), 450);//Magic number GROUND FLOOR
+					players.get(x).stopJump();
+				}else{
+					players.get(x).setDy(players.get(x).getDy()+1);
+				}
+			}
+			userList.chat.get(x).setMessage(players.get(x).getX()+", "+players.get(x).getY());
+			message= message+"~C~"+players.get(x).getName()+"~"+players.get(x).getX()+"~"+players.get(x).getY();
+		}
+		if(comm!=null && comm.run==true && message.length()>0){
+			comm.send(message);//System.out.println("uhhh");
+		}
+		//send data
 	}
 
 	@Override
