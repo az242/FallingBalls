@@ -12,6 +12,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -29,7 +30,7 @@ import DataTypes.Player;
 import DataTypes.Power;
 import Server.Server.ServerConnection;
 
-public class Client extends Applet implements MouseListener, ActionListener,KeyListener{
+public class Client extends Applet implements MouseListener, ActionListener,KeyListener,MouseMotionListener{
 	boolean typing;
 	ArrayList<Player> players;
 	ArrayChat chatBox;
@@ -37,6 +38,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	boolean connected= false;
 	private Font font;
 	public Client(){
+		addMouseMotionListener(this);
 		chatBox = new ArrayChat(700,0,1000,250,20,true);
 		setFocusable(true);
 		addMouseListener(this);
@@ -118,6 +120,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 						if(players.get(x).getName().equals(data[CP+1]) && Long.parseLong(data[0])-players.get(x).lastTimeSeen>0){
 							int[] test = {Integer.parseInt(data[CP+2]),Integer.parseInt(data[CP+3])};
 							players.get(x).setCords(test[0],test[1]);
+							players.get(x).lastTimeSeen=Long.parseLong(data[0]);
 						}
 					}
 					CP = CP+4;
@@ -151,7 +154,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			
 			}
 		}
-		public void send(String packet){//packet is usually x,y
+		public void send(String packet){
 			try {
 				byte[] sendData = new byte[1024];
 				sendData = packet.getBytes();
@@ -314,6 +317,18 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			return Power.Wormhole;
 		default:
 			return null;
+		}
+	}
+	@Override
+	public void mouseDragged(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		// TODO Auto-generated method stub
+		if(chatBox.contains(e.getX(), e.getY())){
+			chatBox.reset();
 		}
 	}
 }

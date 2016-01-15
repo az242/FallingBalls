@@ -84,7 +84,7 @@ public class ArrayChat {
 				java.awt.geom.Rectangle2D rect2 = fm.getStringBounds(chat.get(chatEntry).getUsername(), g);
 				
 				g.drawString(chat.get(chatEntry).getUsername(), x1, (int) (y2-((offset)*rect.getHeight())));
-				if(chat.get(chatEntry).getMessage().length()<=0){
+				if(chat.get(chatEntry).getMessage()!=null && chat.get(chatEntry).getMessage().length()<=0){
 					return;
 				}
 				if(fading)

@@ -14,10 +14,11 @@ public class Player {
 	InetAddress  IP;
 	int port;
 	Color col;
-	public Player(int x,int y, String username, Power power,InetAddress ip,int port){
+	public Player(int x,int y, String username, Power power,Color color,InetAddress ip,int port){
 		this.port=port;
 		this.x=x;
 		this.IP=ip;
+		this.col=color;
 		this.y=y;
 		this.username=username;
 		this.power=power;

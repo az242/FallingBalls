@@ -61,8 +61,8 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 				serverLog.addMessage(new Message("System", "Socket Established"));
 			} catch (SocketException e) {
 				// TODO Auto-generated catch block
-				//e.printStackTrace();
-				serverLog.addMessage(new Message("ERROR", e.getMessage(),Color.RED));
+				e.printStackTrace();
+				//serverLog.addMessage(new Message("ERROR", e.getMessage(),Color.RED));
 				run= false;
 			}
 			 run = true;
@@ -80,13 +80,14 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					serverSock.receive(receivePacket);
 					String data = new String(receivePacket.getData()).trim();
 					//do something with ddata
-					System.out.println(data);
+					//System.out.println(data);
 					process(data.split("~"),receivePacket.getAddress(),receivePacket.getPort());
 					receiveData = new byte[1024];
 				} 
 				System.out.println("Something went wrong");
 			}catch (Exception ex){
-				serverLog.addMessage(new Message("ERROR", ex.getMessage(),Color.RED));
+				ex.printStackTrace();
+				//serverLog.addMessage(new Message("ERROR", ex.getMessage(),Color.RED));
 			}
 		}
 		final String Connect = "Connect";
@@ -125,12 +126,12 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					}
 					if(accept){
 						serverLog.addMessage(new Message("System", data[CP+1] + " has connected to server."));
-						players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),inetAddress,port));
+						players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6])),inetAddress,port));
 						userList.addMessage(new Message(data[CP+1], data[CP+2] +", "+ data[CP+3],new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6])) ));
 						send(data[0]+"~"+data[CP]+"~" + data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+ data[CP+4]+"~"+data[CP+5]+"~"+data[CP+6]+"~"+data[CP+7]);
 						String temp=System.currentTimeMillis()+"";
 						for(int x=0;x<players.size()-1;x++){
-							temp = temp + "~Succ~"+players.get(x).getName()+"~"+players.get(x).getX()+"~"+players.get(x).getY()+"~"+players.get(x).getColor().getRed()+"~"+players.get(x).getColor().getGreen()+"~"+players.get(x).getColor().getBlue();
+							temp = temp + "~Succ~"+players.get(x).getName()+"~"+players.get(x).getX()+"~"+players.get(x).getY()+"~"+players.get(x).getColor().getRed()+"~"+players.get(x).getColor().getGreen()+"~"+players.get(x).getColor().getBlue()+"~"+players.get(x).getPower().getIndex();
 						}
 						if(players.size()>1)
 							send(temp,inetAddress ,port); 
@@ -203,11 +204,13 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			byte[] sendData = new byte[1024];
 			sendData = data.getBytes();
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip,port);
+			//System.out.println(sendPacket.getAddress().toString()+": "+sendPacket.getPort());
 			try {
 				serverSock.send(sendPacket);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				serverLog.addMessage(new Message("ERROR", e.getMessage(),Color.RED));
+				e.printStackTrace();
+				//serverLog.addMessage(new Message("ERROR", "Failed to send packet: "+e.getMessage(),Color.RED));
 				
 			}
 		}
@@ -216,11 +219,13 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			sendData= data.getBytes();
 			for(int x=0;x<players.size();x++){
 				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, players.get(x).getIP(),players.get(x).getPort());
+//				/System.out.println(sendPacket.getAddress().toString()+": "+sendPacket.getPort());
 				try {
 					serverSock.send(sendPacket);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
-					serverLog.addMessage(new Message("ERROR", e.getMessage(),Color.RED));
+					e.printStackTrace();
+					//serverLog.addMessage(new Message("ERROR", "Failed to send packet: "+e.getMessage(),Color.RED));
 					
 				}
 			}
