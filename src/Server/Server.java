@@ -100,8 +100,9 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			}
 			Color col = new Color((int)(Math.random()*255),(int)(Math.random()*255),(int)(Math.random()*255));
 			String id = rn();
-			balls.add(new Ball(id,x,y,radius,col,dy,dx));
-			comm.send(System.currentTimeMillis()+"~BC~"+id+"~"+x+"~"+y+"~"+radius+"~"+col.getRed()+"~"+col.getGreen()+"~"+col.getBlue()+"~"+dy+"~"+dx);
+			long time = System.currentTimeMillis();
+			balls.add(new Ball(id,x,y,radius,col,dy,dx,time));
+			comm.send(System.currentTimeMillis()+"~BC~"+id+"~"+x+"~"+y+"~"+radius+"~"+col.getRed()+"~"+col.getGreen()+"~"+col.getBlue()+"~"+dy+"~"+dx+"~"+time);
 		}
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
@@ -320,6 +321,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		setSize(1000,500);
 		serverLog.draw(g);
 		userList.draw(g);
+		g.drawString("balls: "+balls.size(), 10, 50);
 	}
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
@@ -348,7 +350,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 				balls.remove(x);
 			}else{
 				balls.get(x).update(delta);
-				message = message + "~B~"+balls.get(x).getID()+"~"+balls.get(x).getX()+"~"+balls.get(x).getY();
+				//message = message + "~B~"+balls.get(x).getID()+"~"+balls.get(x).getX()+"~"+balls.get(x).getY();
 			}
 		}
 		

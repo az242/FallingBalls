@@ -152,17 +152,18 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 					chatBox.addMessage(new Message(data[CP+1],data[CP+2],new Color(Integer.parseInt(data[CP+3]), Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]))));
 					CP = CP+6;
 				}else if(data[CP].equals(Failure)){
-					JOptionPane.showConfirmDialog(null, "Can't join! There is already a user with that name!");
+					JOptionPane.showMessageDialog(null, "Can't join! There is already a user with that name!");
 				}else if(data[CP].equals(Success)){
 					//name x y R G B power
 					players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6]))));
 					CP=CP+8;
 				}else if(data[CP].equals(BallCreate)){
-					// id x y r R G B dy dx
-					balls.add(new Ball(data[CP+1],Integer.parseInt(data[CP+2]),Integer.parseInt(data[CP+3]) , Integer.parseInt(data[CP+4]),new Color(Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6]),Integer.parseInt(data[CP+7])),Integer.parseInt(data[CP+8]),Integer.parseInt(data[CP+9])));
-					CP = CP + 10;
+					// id x y r R G B dy dx time
+					balls.add(new Ball(data[CP+1],Integer.parseInt(data[CP+2]),Integer.parseInt(data[CP+3]) , Integer.parseInt(data[CP+4]),new Color(Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6]),Integer.parseInt(data[CP+7])),Integer.parseInt(data[CP+8]),Integer.parseInt(data[CP+9]),Long.parseLong(data[CP+10])));
+					CP = CP + 11;
 				}else if(data[CP].equals(BallCord)){
 					// id x y
+					//NOT USED
 					for(int x=0;x<balls.size();x++){
 						if(balls.get(x).getID().equals(data[CP+1])){
 							balls.get(x).setX(Integer.parseInt(data[CP+2]));
@@ -219,6 +220,8 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			g.drawRect(players.get(x).getCords()[0]-5, players.get(x).getCords()[1]-25, 10, 25);
 		}
 		chatBox.draw(g);
+		g.setColor(Color.BLACK);
+		g.drawString(Typed, chatBox.getX(), chatBox.getHeight()+12);
 	}
 	
 	private Image dbImage; 
@@ -251,6 +254,11 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	public void actionPerformed(ActionEvent arg0) {
 		// TODO Auto-generated method stub
 		repaint();
+		double delta= (double)getDelta()/1000.0;
+		for(int x=0;x<balls.size();x++){
+			balls.get(x).update((System.currentTimeMillis()-balls.get(x).getTime())/1000.0);
+			balls.get(x).setTime(System.currentTimeMillis());
+		}
 	}
 
 	@Override
@@ -276,7 +284,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		// TODO Auto-generated method stub
 		if(!connected){
 			username = JOptionPane.showInputDialog("Username?");
-			while(username.contains("~") || username.length()>15 || username.length()==0){
+			while(username.contains("~") || username.length()>12 || username.length()==0){
 				username = JOptionPane.showInputDialog("Something is wrong with your Username! Try a new one.");
 			}
 			startConnection();
@@ -304,7 +312,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			}
 		}
 		if(typing && arg0.getKeyCode()!=KeyEvent.VK_ENTER && arg0.getKeyCode()!=KeyEvent.VK_SHIFT){
-			if(arg0.getKeyCode()==KeyEvent.VK_BACK_SPACE){
+			if(arg0.getKeyCode()==KeyEvent.VK_BACK_SPACE && Typed.length()>0){
 				Typed = Typed.substring(0,Typed.length()-2);
 			}else{
 				if(arg0.getKeyChar()!='~'){
@@ -378,5 +386,15 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		if(chatBox.contains(e.getX(), e.getY())){
 			chatBox.reset();
 		}
+	}
+	public long getTime(){
+		return System.currentTimeMillis();
+	}
+	long lastTime = getTime();
+	public int getDelta(){
+		long time=getTime();
+		int delta=(int)(time-lastTime);
+		lastTime=time;
+		return (Integer) delta;
 	}
 }

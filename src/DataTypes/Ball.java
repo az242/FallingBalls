@@ -8,7 +8,8 @@ public class Ball {
 	int radius;
 	Color col;
 	String id;
-	public Ball(String ID,int x, int y, int radius, Color color,int dy,int dx){
+	long creationTime;
+	public Ball(String ID,int x, int y, int radius, Color color,int dy,int dx,long time){
 		//x y r C dy dx
 		this.x=x;
 		this.y=y;
@@ -17,6 +18,13 @@ public class Ball {
 		this.radius=radius;
 		this.col=color;
 		this.id=ID;
+		this.creationTime = time;
+	}
+	public long getTime(){
+		return creationTime;
+	}
+	public void setTime(long time){
+		creationTime = time;
 	}
 	public String getID(){
 		return id;

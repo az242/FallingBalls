@@ -50,6 +50,18 @@ public class ArrayChat {
 			y2=temp;
 		}
 	}
+	public int getX(){
+		return x1;
+	}
+	public int getY(){
+		return y1;
+	}
+	public int getWidth(){
+		return Math.abs(x1-x2);
+	}
+	public int getHeight(){
+		return Math.abs(y1-y2);
+	}
 	public void addMessage(Message temp){
 		if(!fading)
 			temp.freeze();
@@ -66,13 +78,28 @@ public class ArrayChat {
 			FontMetrics fm   = g.getFontMetrics(font);
 			java.awt.geom.Rectangle2D rect = fm.getStringBounds(chat.get(chatEntry).getFormatedMessage(), g);
 			if(rect.getWidth()>Math.abs(x1-x2)){
+				java.awt.geom.Rectangle2D rect2 = fm.getStringBounds(chat.get(chatEntry).getUsername(), g);
 				//if size of message is too large
 				String[] components = wrapAround(chat.get(chatEntry),fm,g);
 				for(int y=components.length-1;y>0;y--){ //0 is first line, 1 is second, ect
-					g.drawString(components[y], x1, (int) (y2-((offset)*rect.getHeight())));
+					g.drawString(components[y], (int) (x1+rect2.getWidth()), (int) (y2-((offset)*rect.getHeight())));
 					offset++;
 				}
-				offset--;
+				Color temp=chat.get(chatEntry).userColor;
+				if(fading)
+					g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),chat.get(chatEntry).getAlpha()));
+				else
+					g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue()));
+				g.drawString(chat.get(chatEntry).getUsername(), x1, (int) (y2-((offset)*rect.getHeight())));
+				
+				if(chat.get(chatEntry).getMessage()!=null && chat.get(chatEntry).getMessage().length()<=0){
+					return;
+				}
+				if(fading)
+					g.setColor(new Color(0,0,0,chat.get(chatEntry).getAlpha()));
+				else
+					g.setColor(Color.BLACK);
+				g.drawString(components[0], (int) (x1+rect2.getWidth()),  (int) (y2-((offset)*rect.getHeight())));
 			}else{
 				//draw message into chat box;
 				Color temp=chat.get(chatEntry).userColor;
@@ -101,9 +128,22 @@ public class ArrayChat {
 		java.awt.geom.Rectangle2D mess = fm.getStringBounds(message.getFMessage(), g);
 		String fmess = message.getFMessage();
 		ArrayList<String> messages = new ArrayList<String>();
-		int cutoff = (int) ((username.getWidth()+mess.getWidth()) - Math.abs(x1-x2));// find how much is outside chatbox
-		
-		return components;
+		//actual cutting
+		int numOfChar = (int) (((Math.abs(x1-x2)-username.getWidth())/(username.getWidth()+mess.getWidth()))*message.getFormatedMessage().length());// find ratio of message size compared to chatbox
+		int index=numOfChar;
+		messages.add(message.getFMessage().substring(0, index));
+		while(index<message.getFMessage().length()){
+			if(index+numOfChar>message.getFMessage().length()){
+				messages.add(message.getFMessage().substring(index));
+			}else{
+				messages.add(message.getFMessage().substring(index, index+numOfChar));
+			}
+			index = index+numOfChar;
+		}
+		//
+		String[] temp = new String[messages.size()];
+		messages.toArray(temp);
+		return temp;
 	}
 	public void reset(){
 		if(!fading)
