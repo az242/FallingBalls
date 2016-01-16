@@ -26,6 +26,7 @@ import javax.swing.Timer;
 
 import Chat.ArrayChat;
 import Chat.Message;
+import DataTypes.Ball;
 import DataTypes.Player;
 import DataTypes.Power;
 import Server.Server.ServerConnection;
@@ -33,6 +34,7 @@ import Server.Server.ServerConnection;
 public class Client extends Applet implements MouseListener, ActionListener,KeyListener,MouseMotionListener{
 	boolean typing;
 	ArrayList<Player> players;
+	ArrayList<Ball> balls;
 	ArrayChat chatBox;
 	String username="test";
 	boolean connected= false;
@@ -44,6 +46,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		addMouseListener(this);
 		addKeyListener(this);
 		typing=false;
+		balls= new ArrayList<Ball>();
 		players = new ArrayList<Player>();
 		font = new Font("Arial", Font.PLAIN, 12);
 		Timer myTimer;
@@ -55,7 +58,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		comm=new ClientConnection("47.20.145.40");
 		Thread servertest=new Thread(comm);
 		servertest.start();
-		String test = System.currentTimeMillis() + "~Connect"+"~"+username+"~500~450~255~0~0~1";
+		String test = System.currentTimeMillis() + "~Connect"+"~"+username+"~500~450~255~0~100~1";
 		//name x y R G B power
 		comm.send(test);
 		//name message R G B
@@ -111,6 +114,10 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		final String Move = "M";
 		final String Power = "P";
 		final String Success = "Succ";
+		final String BallCreate = "BC";
+		final String BallDestroy = "BD";
+		final String BallCord = "B";
+		final String serverDC = "ServerErrorDC";
 		public void process(String[] data){
 			int CP=1;
 			while(CP<data.length-1){
@@ -150,6 +157,33 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 					//name x y R G B power
 					players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6]))));
 					CP=CP+8;
+				}else if(data[CP].equals(BallCreate)){
+					// id x y r R G B dy dx
+					balls.add(new Ball(data[CP+1],Integer.parseInt(data[CP+2]),Integer.parseInt(data[CP+3]) , Integer.parseInt(data[CP+4]),new Color(Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6]),Integer.parseInt(data[CP+7])),Integer.parseInt(data[CP+8]),Integer.parseInt(data[CP+9])));
+					CP = CP + 10;
+				}else if(data[CP].equals(BallCord)){
+					// id x y
+					for(int x=0;x<balls.size();x++){
+						if(balls.get(x).getID().equals(data[CP+1])){
+							balls.get(x).setX(Integer.parseInt(data[CP+2]));
+							balls.get(x).setY(Integer.parseInt(data[CP+3]));
+						}
+					}
+					CP=CP+4;
+				}else if(data[CP].equals(BallDestroy)){
+					// id
+					for(int x=0;x<balls.size();x++){
+						if(balls.get(x).getID().equals(data[CP+1])){
+							//System.out.println("Destroy");
+							balls.remove(x);
+							x--;
+						}
+					}
+					CP = CP+2;
+				}else if(data[CP].equals(serverDC)){
+					comm=null;
+					connected=false; 
+					JOptionPane.showConfirmDialog(null, "Server Experienced an error! \nDisconnected!");
 				}
 			
 			}
@@ -172,6 +206,9 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		g.setFont(font);
 		g.setColor(Color.BLACK);
 		g.drawLine(0,450,1000,450);
+		for(int x=0;x<balls.size();x++){
+			balls.get(x).draw(g);
+		}
 		for(int x=0;x<players.size();x++){
 			g.setColor(players.get(x).getColor());
 			FontMetrics fm   = g.getFontMetrics(font);
@@ -238,6 +275,9 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		// TODO Auto-generated method stub
 		if(!connected){
 			username = JOptionPane.showInputDialog("Username?");
+			while(username.contains("~") || username.length()>15 || username.length()==0){
+				username = JOptionPane.showInputDialog("Something is wrong with your Username! Try a new one.");
+			}
 			startConnection();
 		}
 		
@@ -252,17 +292,24 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	public void keyPressed(KeyEvent arg0) {
 		// TODO Auto-generated method stub
 		if(arg0.getKeyCode()==KeyEvent.VK_ENTER){
-			if(typing){
+			if(typing ){
 				typing = false;
-				comm.send(System.currentTimeMillis()+"~CH~"+players.get(0).getName()+"~"+Typed+"~"+players.get(0).getColor().getRed()+"~"+players.get(0).getColor().getGreen()+"~"+players.get(0).getColor().getBlue());
+				if(Typed.length()>0)
+					comm.send(System.currentTimeMillis()+"~CH~"+players.get(0).getName()+"~"+Typed+"~"+players.get(0).getColor().getRed()+"~"+players.get(0).getColor().getGreen()+"~"+players.get(0).getColor().getBlue());
 				//name message R G B
 				Typed = "";
 			}else{
 				typing = true;
 			}
 		}
-		if(typing && arg0.getKeyCode()!=KeyEvent.VK_ENTER){
-			Typed = Typed+arg0.getKeyChar();
+		if(typing && arg0.getKeyCode()!=KeyEvent.VK_ENTER && arg0.getKeyCode()!=KeyEvent.VK_SHIFT){
+			if(arg0.getKeyCode()==KeyEvent.VK_BACK_SPACE){
+				Typed = Typed.substring(0,Typed.length()-2);
+			}else{
+				if(arg0.getKeyChar()!='~'){
+					Typed = Typed+arg0.getKeyChar();
+				}
+			}
 		}
 		if(!typing){
 			switch(arg0.getKeyCode()){
