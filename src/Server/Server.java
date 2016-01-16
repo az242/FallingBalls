@@ -55,6 +55,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	public void destroy(){
 		if(comm!=null)
 			comm.send(System.currentTimeMillis()+"~ServerErrorDC");
+		System.out.println("Exited");
 	}
 	ServerConnection comm;
 	public void startServer(){

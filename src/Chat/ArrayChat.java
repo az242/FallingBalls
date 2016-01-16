@@ -67,7 +67,7 @@ public class ArrayChat {
 			java.awt.geom.Rectangle2D rect = fm.getStringBounds(chat.get(chatEntry).getFormatedMessage(), g);
 			if(rect.getWidth()>Math.abs(x1-x2)){
 				//if size of message is too large
-				String[] components = wrapAround(chat.get(chatEntry).getFormatedMessage(),rect);
+				String[] components = wrapAround(chat.get(chatEntry),fm,g);
 				for(int y=components.length-1;y>0;y--){ //0 is first line, 1 is second, ect
 					g.drawString(components[y], x1, (int) (y2-((offset)*rect.getHeight())));
 					offset++;
@@ -96,10 +96,13 @@ public class ArrayChat {
 			}
 		}
 	}
-	public String[] wrapAround(String message,java.awt.geom.Rectangle2D rect){
-		int cutoff = (int) (rect.getWidth() - Math.abs(x1-x2));// find how much is outside chatbox
-		cutoff = (int) (message.length()* (cutoff/rect.getWidth())); // get size of string for first line
-		String[] components = {message.substring(0,cutoff),message.substring(cutoff)};
+	public String[] wrapAround(Message message,FontMetrics fm,Graphics g){
+		java.awt.geom.Rectangle2D username = fm.getStringBounds(message.getUsername(), g);
+		java.awt.geom.Rectangle2D mess = fm.getStringBounds(message.getFMessage(), g);
+		String fmess = message.getFMessage();
+		ArrayList<String> messages = new ArrayList<String>();
+		int cutoff = (int) ((username.getWidth()+mess.getWidth()) - Math.abs(x1-x2));// find how much is outside chatbox
+		
 		return components;
 	}
 	public void reset(){

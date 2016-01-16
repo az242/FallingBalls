@@ -120,7 +120,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		final String serverDC = "ServerErrorDC";
 		public void process(String[] data){
 			int CP=1;
-			while(CP<data.length-1){
+			while(CP<data.length){
 				if(data[CP].equals(Cords)){
 					//name x y
 					for(int x=0;x<players.size();x++){
@@ -181,9 +181,10 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 					}
 					CP = CP+2;
 				}else if(data[CP].equals(serverDC)){
+					JOptionPane.showMessageDialog(null, "Server Experienced an error! \nDisconnected!");
 					comm=null;
 					connected=false; 
-					JOptionPane.showConfirmDialog(null, "Server Experienced an error! \nDisconnected!");
+					CP = CP+1;
 				}
 			
 			}
