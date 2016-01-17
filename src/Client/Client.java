@@ -250,6 +250,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 				g.drawString(players.get(x).getName(), (int) (players.get(x).getX()-(rect.getWidth()/2)), players.get(x).getY()-25);
 				g.drawRect(players.get(x).getCords()[0]-5, players.get(x).getCords()[1]-25, 10, 25);
 				if(players.get(x).isReady()){
+					g.setColor(new Color(153,101,21));
 					rect = fm.getStringBounds("ready", g);
 					g.drawString("ready", (int) (players.get(x).getX()-(rect.getWidth()/2)), (int) (players.get(x).getY()-25-rect.getHeight()));
 				}
@@ -257,6 +258,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 				g.drawString(players.get(x).getName(), (int) (players.get(x).getX()-(rect.getWidth()/2)), players.get(x).getY());
 				if(players.get(x).isReady()){
 					rect = fm.getStringBounds("ready", g);
+					g.setColor(new Color(153,101,21));
 					g.drawString("ready", (int) (players.get(x).getX()-(rect.getWidth()/2)), (int) (players.get(x).getY()-rect.getHeight()));
 				}
 			}
@@ -344,6 +346,8 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	}
 	@Override
 	public void keyPressed(KeyEvent arg0) {
+		if(!connected)
+			return;
 		// TODO Auto-generated method stub
 		if(arg0.getKeyCode()==KeyEvent.VK_ENTER){
 			if(typing ){
