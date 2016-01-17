@@ -6,6 +6,8 @@ import java.net.InetAddress;
 
 public class Player {
 	public static int jumpConstant = 12;
+	public static int moveConstant = 100;
+	boolean ready;
 	int x,y;
 	int dx,dy;
 	String username;
@@ -27,21 +29,33 @@ public class Player {
 		this.power=power;
 		jumping = false;
 		dead = false;
+		ready= false;
 		//this.ID=ID;
 	}
 	public Player(int x, int y,String username, Power power,Color color){
 		col=color;
 		this.x=x;
+		ready= false;
 		this.y=y;
 		this.username=username;
 		this.power=power;jumping = false;
 		dead = false;
+	}
+	public void Ready(){
+		ready = true;
+	}
+	public void setReady(boolean ready){
+		this.ready=ready;
+	}
+	public boolean isReady(){
+		return ready;
 	}
 	public boolean isDead(){
 		return dead;
 	}
 	public void Died(){
 		dead = true;
+		dx = 0;
 	}
 	public void revive(){
 		dead = false;

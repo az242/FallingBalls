@@ -73,6 +73,25 @@ public class Ball {
 		y = y+(int)(delta*dy);
 	}
 	public boolean intersects(Rectangle rect){
+		int dx = (int) (rect.getX()-x);
+		int dy = (int) (rect.getY()-y);
+		double leftdistance = Math.sqrt((dx*dx)+(dy*dy));
+		dx = (int) (rect.getX()+rect.getWidth())-x;
+		dy = (int) ((rect.getY())-y);
+		double rightdistance = Math.sqrt((dx*dx)+(dy*dy));
+		dx = (int) (rect.getX())-x;
+		dy = (int) ((rect.getY()+rect.getHeight())-y);
+		double botLeft = Math.sqrt((dx*dx)+(dy*dy));
+		dx = (int) (rect.getX()+rect.getWidth())-x;
+		dy = (int) ((rect.getY()+rect.getHeight())-y);
+		double botRight = Math.sqrt((dx*dx)+(dy*dy));
+		if(leftdistance<radius || rightdistance<radius || botLeft < radius || botRight < radius){
+			return true;
+		}
+		return false;
+	}
+	/*
+	public boolean intersects(Rectangle rect){
 		Point cTop=new Point(x,y-radius);
 		Point cBot=new Point(x,y+radius);
 		Point cLeft=new Point(x-radius,y);
@@ -92,13 +111,16 @@ public class Ball {
 		points.add(cbotRight);
 		points.add(cbotLeft);
 		points.add(new Point(x,y));
+		if( rect.intersects(circle)){
+			return true;
+		}
 		for(int x=0;x<points.size();x++){
-			if(rect.contains(points.get(x)) || rect.contains(circle)){
+			if(rect.contains(points.get(x))){
 				return true;
 			}
 		}
 		return false;
-	}
+	}*/
 	public void draw(Graphics g){
 		g.setColor(col);
 		g.fillOval(x-radius, y-radius, radius*2, radius*2);

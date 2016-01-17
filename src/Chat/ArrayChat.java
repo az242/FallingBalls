@@ -81,10 +81,15 @@ public class ArrayChat {
 				java.awt.geom.Rectangle2D rect2 = fm.getStringBounds(chat.get(chatEntry).getUsername(), g);
 				//if size of message is too large
 				String[] components = wrapAround(chat.get(chatEntry),fm,g);
+				if(fading)
+					g.setColor(new Color(0,0,0,chat.get(chatEntry).getAlpha()));
+				else
+					g.setColor(Color.BLACK);
 				for(int y=components.length-1;y>0;y--){ //0 is first line, 1 is second, ect
 					g.drawString(components[y], (int) (x1+rect2.getWidth()), (int) (y2-((offset)*rect.getHeight())));
 					offset++;
 				}
+				g.drawString(components[0], (int) (x1+rect2.getWidth()),  (int) (y2-((offset)*rect.getHeight())));
 				Color temp=chat.get(chatEntry).userColor;
 				if(fading)
 					g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),chat.get(chatEntry).getAlpha()));
@@ -92,14 +97,6 @@ public class ArrayChat {
 					g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue()));
 				g.drawString(chat.get(chatEntry).getUsername(), x1, (int) (y2-((offset)*rect.getHeight())));
 				
-				if(chat.get(chatEntry).getMessage()!=null && chat.get(chatEntry).getMessage().length()<=0){
-					return;
-				}
-				if(fading)
-					g.setColor(new Color(0,0,0,chat.get(chatEntry).getAlpha()));
-				else
-					g.setColor(Color.BLACK);
-				g.drawString(components[0], (int) (x1+rect2.getWidth()),  (int) (y2-((offset)*rect.getHeight())));
 			}else{
 				//draw message into chat box;
 				Color temp=chat.get(chatEntry).userColor;

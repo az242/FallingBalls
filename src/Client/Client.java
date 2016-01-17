@@ -108,20 +108,21 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 				e.printStackTrace();
 			}
 		}
-		final String Connect = "Connect";
-		final String Disconnect = "Disconnect";
-		final String Failure = "Failed";
-		final String Cords = "C";
-		final String Chat = "CH";
-		final String Move = "M";
-		final String Power = "P";
-		final String Success = "Succ";
-		final String BallCreate = "BC";
-		final String BallDestroy = "BD";
-		final String BallCord = "B";
-		final String serverDC = "ServerErrorDC";
-		final String Death = "D";
-		final String Reset = "Reset";
+		final static String Connect = "Connect";
+		final static String Disconnect = "Disconnect";
+		final static String Failure = "Failed";
+		final static String Cords = "C";
+		final static String Chat = "CH";
+		final static String Move = "M";
+		final static String Power = "P";
+		final static String Success = "Succ";
+		final static String BallCreate = "BC";
+		final static String BallDestroy = "BD";
+		final static String BallCord = "B";
+		final static String serverDC = "ServerErrorDC";
+		final static String Death = "D";
+		final static String Reset = "Reset";
+		final static String Ready = "R";
 		public void process(String[] data){
 			int CP=1;
 			while(CP<data.length){
@@ -205,8 +206,17 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 					for(int x=0;x<players.size();x++){
 						players.get(x).revive();
 					}
+					balls=new ArrayList<Ball>();
 					Dead = false;
 					CP = CP+1;
+				}else if(data[CP].equals(Ready)){
+					//name
+					for(int x=0;x<players.size();x++){
+						if(players.get(x).getName().equals(data[CP+1])){
+							players.get(x).setReady(!players.get(x).isReady());
+						}
+					}
+					CP = CP+2;
 				}
 			
 			}
@@ -239,10 +249,17 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			if(!players.get(x).isDead()){
 				g.drawString(players.get(x).getName(), (int) (players.get(x).getX()-(rect.getWidth()/2)), players.get(x).getY()-25);
 				g.drawRect(players.get(x).getCords()[0]-5, players.get(x).getCords()[1]-25, 10, 25);
+				if(players.get(x).isReady()){
+					rect = fm.getStringBounds("ready", g);
+					g.drawString("ready", (int) (players.get(x).getX()-(rect.getWidth()/2)), (int) (players.get(x).getY()-25-rect.getHeight()));
+				}
 			}else{
 				g.drawString(players.get(x).getName(), (int) (players.get(x).getX()-(rect.getWidth()/2)), players.get(x).getY());
+				if(players.get(x).isReady()){
+					rect = fm.getStringBounds("ready", g);
+					g.drawString("ready", (int) (players.get(x).getX()-(rect.getWidth()/2)), (int) (players.get(x).getY()-rect.getHeight()));
+				}
 			}
-			
 		}
 		chatBox.draw(g);
 		g.setColor(Color.BLACK);
@@ -280,9 +297,13 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		// TODO Auto-generated method stub
 		repaint();
 		double delta= (double)getDelta()/1000.0;
-		for(int x=0;x<balls.size();x++){
-			balls.get(x).update((System.currentTimeMillis()-balls.get(x).getTime())/1000.0);
-			balls.get(x).setTime(System.currentTimeMillis());
+		try{
+			for(int x=0;x<balls.size();x++){
+				balls.get(x).update((System.currentTimeMillis()-balls.get(x).getTime())/1000.0);
+				balls.get(x).setTime(System.currentTimeMillis());
+			}
+		}catch(Exception E){
+			
 		}
 	}
 
@@ -314,7 +335,6 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			}
 			startConnection();
 		}
-		
 	}
 
 	@Override
@@ -337,10 +357,16 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			}
 		}
 		if(typing && arg0.getKeyCode()!=KeyEvent.VK_ENTER && arg0.getKeyCode()!=KeyEvent.VK_SHIFT){
-			if(arg0.getKeyCode()==KeyEvent.VK_BACK_SPACE && Typed.length()>0){
-				Typed = Typed.substring(0,Typed.length()-2);
+			if(arg0.getKeyCode()==KeyEvent.VK_BACK_SPACE){
+				if(Typed.length()==0){
+					
+				}else if(Typed.length()==1){
+					Typed = "";
+				}else{
+					Typed = Typed.substring(0,Typed.length()-2);
+				}
 			}else{
-				if(arg0.getKeyChar()!='~'){
+				if(arg0.getKeyChar()!='~' && arg0.getKeyCode()!=KeyEvent.VK_BACK_SPACE){
 					Typed = Typed+arg0.getKeyChar();
 				}
 			}
@@ -361,6 +387,10 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 				break;
 				
 			}
+			
+		}
+		if(arg0.getKeyCode()==KeyEvent.VK_R && !typing){
+			comm.send(System.currentTimeMillis()+"~R~"+username);
 		}
 	}
 

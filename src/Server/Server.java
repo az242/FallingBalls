@@ -47,6 +47,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		buttons.add(new Button(770,110,50,20,"Green"));
 		buttons.add(new Button(770,135,50,20,"Blue"));
 		buttons.add(new Button(770,160,50,20,"Jump"));
+		buttons.add(new Button(770,185,50,20,"Move"));
 		addKeyListener(this);
 		setFocusable(true);
 		addMouseListener(this);
@@ -83,14 +84,10 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		balls = new ArrayList<Ball>();
 	}
 	public void reset(){
-		if(BG==null)
-			return;
-		BG.stop();
+		if(BG!=null)
+			BG.stop();
 		BG = null;
 		String message = System.currentTimeMillis()+"";
-		for(int x=0;x<balls.size();x++){
-			message = message + "~BD~"+balls.get(x).getID();
-		}
 		for(int x=0;x<players.size();x++){
 			players.get(x).revive();
 		}
@@ -192,6 +189,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		final String Chat = "CH";
 		final String Move = "M";
 		final String Power = "P";
+		final String Ready = "R";
 		public void process(String data[], InetAddress inetAddress,int port){
 			//slot 0 is time
 			int CP=1;
@@ -266,29 +264,64 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 								players.get(x).startJump();
 								break;
 							case "APress":
-								players.get(x).setDx(-100);
+								players.get(x).setDx(-Player.moveConstant);
 								break;
 							case "SPress":
 								break;
 							case "DPress":
-								players.get(x).setDx(100);
+								players.get(x).setDx(Player.moveConstant);
 								break;
 							case "WRelease":
 								//nothing
 								break;
 							case "ARelease":
-								if(players.get(x).getDx()==-100)
+								if(players.get(x).getDx()==-Player.moveConstant)
 									players.get(x).setDx(0);
 								break;
 							case "SRelease":
 								break;
 							case "DRelease":
-								if(players.get(x).getDx()==100)
+								if(players.get(x).getDx()==Player.moveConstant)
 									players.get(x).setDx(0);
 								break;
 							}
 						}
 					}
+					CP = CP +2;
+				}else if(data[CP].equals(Ready)){
+					//name
+					boolean allReady = true;
+					boolean wut=false;
+					for(int x=0;x<players.size();x++){
+						if(players.get(x).getName().equals(data[CP+1])){
+							players.get(x).setReady(!players.get(x).isReady());
+							wut = true;
+						}
+						if(!players.get(x).isReady()){
+							allReady= false;
+						}
+					}String msg=System.currentTimeMillis()+"";
+					if(wut){
+						 msg= System.currentTimeMillis()+"~CH~"+"Server~"+data[CP+1]+" is ready!"+"~"+"153~101~21";
+					}
+					
+					msg = msg +"~R~"+data[CP+1];
+					if(allReady){
+						if(BG==null){
+							startBalls();
+							msg = msg + "~CH~"+"Server~Game Start!~153~101~21";
+						}else{
+							reset();
+							msg = msg + "~CH~"+"Server~Game Reset!~153~101~21";
+						}
+						for(int x=0;x<players.size();x++){
+							msg = msg + "~R~"+players.get(x).getName();
+							players.get(x).setReady(false);
+						}
+					}
+					//name message R G B
+					
+					comm.send(msg);
 					CP = CP +2;
 				}else{
 					CP = CP++;
@@ -382,7 +415,9 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			case "Jump":
 				g.drawString(Player.jumpConstant+"", buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
 				break;
-
+			case "Move":
+				g.drawString(Player.moveConstant+"", buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
+				break;
 			}
 		}
 	}
@@ -396,12 +431,17 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		for(int x=0;x<players.size();x++){
 			players.get(x).setCords((int) (players.get(x).getX()+((double)players.get(x).getDx()*delta)),players.get(x).getY()+players.get(x).getDy());
 			if(players.get(x).isJumping()){
-				if(players.get(x).getDy()==players.get(x).jumpConstant){
+				if(players.get(x).getDy()>=players.get(x).jumpConstant){
 					players.get(x).setCords(players.get(x).getX(), 450);//Magic number GROUND FLOOR
 					players.get(x).stopJump();
 				}else{
 					players.get(x).setDy(players.get(x).getDy()+1);
 				}
+			}
+			if(players.get(x).getX()<=5 && players.get(x).getDx()<0){
+				players.get(x).setCords(5,players.get(x).getY());
+			}else if(players.get(x).getX()>=995 && players.get(x).getDx()>0){
+				players.get(x).setCords(995, players.get(x).getY());
 			}
 			userList.chat.get(x).setMessage(players.get(x).getX()+", "+players.get(x).getY());
 			message= message+"~C~"+players.get(x).getName()+"~"+players.get(x).getX()+"~"+players.get(x).getY();
@@ -492,7 +532,11 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					if(input!=null && input.length()>0)
 						Player.jumpConstant = Integer.parseInt(input);
 					break;
-
+				case "Move":
+					input = JOptionPane.showInputDialog("Move Speed?");
+					if(input!=null && input.length()>0)
+						Player.moveConstant = Integer.parseInt(input);
+					break;
 				}
 			}
 		}
