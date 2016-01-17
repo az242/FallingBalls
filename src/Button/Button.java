@@ -26,6 +26,9 @@ public class Button {
 		}
 		return false;
 	}
+	public String getText(){
+		return text;
+	}
 	public int getX(){
 		return x;
 	}
@@ -43,6 +46,6 @@ public class Button {
 		g.drawRect(x, y, width, height);
 		FontMetrics fm   = g.getFontMetrics(font);
 		java.awt.geom.Rectangle2D rect = fm.getStringBounds(text, g);
-		g.drawString(text, (int)(x+((width-rect.getWidth())/2)), (int)(y+((height-rect.getHeight())/2)));
+		g.drawString(text, (int)(x+((width-rect.getWidth())/2)), (int)(y+((height+rect.getHeight())/2)));
 	}
 }

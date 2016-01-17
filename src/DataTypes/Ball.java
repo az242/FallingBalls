@@ -2,6 +2,9 @@ package DataTypes;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.ArrayList;
 
 public class Ball {
 	int x,y,dx,dy;
@@ -68,6 +71,33 @@ public class Ball {
 	public void update(double delta){
 		x = x+(int)(delta*dx);
 		y = y+(int)(delta*dy);
+	}
+	public boolean intersects(Rectangle rect){
+		Point cTop=new Point(x,y-radius);
+		Point cBot=new Point(x,y+radius);
+		Point cLeft=new Point(x-radius,y);
+		Point cRight=new Point(x+radius,y);
+		Point ctopRight=new Point((int)(x+(Math.cos(45/180 * 3.14)*radius)), (int)(y+(Math.sin(45/180 * 3.14)*radius)));
+		Point ctopLeft=new Point((int)(x-(Math.cos(45/180 * 3.14)*radius)), (int)(y+(Math.sin(45/180 * 3.14)*radius)));
+		Point cbotRight=new Point((int)(x+(Math.cos(45/180 * 3.14)*radius)), (int)(y-(Math.sin(45/180 * 3.14)*radius)));
+		Point cbotLeft=new Point((int)(x-(Math.cos(45/180 * 3.14)*radius)), (int)(y-(Math.sin(45/180 * 3.14)*radius)));
+		Rectangle circle = new Rectangle(ctopLeft.x,ctopLeft.y,Math.abs(cbotRight.x-ctopLeft.x), Math.abs(cbotRight.y-ctopLeft.y));
+		ArrayList<Point> points=new ArrayList<Point>();
+		points.add(cTop);
+		points.add(cBot);
+		points.add(cLeft);
+		points.add(cRight);
+		points.add(ctopRight);
+		points.add(ctopLeft);
+		points.add(cbotRight);
+		points.add(cbotLeft);
+		points.add(new Point(x,y));
+		for(int x=0;x<points.size();x++){
+			if(rect.contains(points.get(x)) || rect.contains(circle)){
+				return true;
+			}
+		}
+		return false;
 	}
 	public void draw(Graphics g){
 		g.setColor(col);

@@ -1,14 +1,17 @@
 package DataTypes;
 
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.net.InetAddress;
 
 public class Player {
+	public static int jumpConstant = 12;
 	int x,y;
 	int dx,dy;
 	String username;
 	Power power;
 	boolean jumping;
+	boolean dead;
 	String ID;
 	public long lastTimeSeen;
 	InetAddress  IP;
@@ -23,6 +26,7 @@ public class Player {
 		this.username=username;
 		this.power=power;
 		jumping = false;
+		dead = false;
 		//this.ID=ID;
 	}
 	public Player(int x, int y,String username, Power power,Color color){
@@ -31,6 +35,16 @@ public class Player {
 		this.y=y;
 		this.username=username;
 		this.power=power;jumping = false;
+		dead = false;
+	}
+	public boolean isDead(){
+		return dead;
+	}
+	public void Died(){
+		dead = true;
+	}
+	public void revive(){
+		dead = false;
 	}
 	public Color getColor(){
 		return col;
@@ -63,8 +77,12 @@ public class Player {
 	public void startJump(){
 		if(!jumping){
 			jumping=true;
-			dy=-10;
+			dy=-jumpConstant;
 		}
+	}
+	public Rectangle getRect(){
+		Rectangle rect = new Rectangle(x-5,y-25,10,25);
+		return rect;
 	}
 	public void setDy(int dY){
 		dy=dY;

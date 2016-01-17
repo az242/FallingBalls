@@ -38,6 +38,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	ArrayChat chatBox;
 	String username="test";
 	boolean connected= false;
+	boolean Dead;
 	private Font font;
 	public Client(){
 		addMouseMotionListener(this);
@@ -46,6 +47,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		addMouseListener(this);
 		addKeyListener(this);
 		typing=false;
+		Dead = false;
 		balls= new ArrayList<Ball>();
 		players = new ArrayList<Player>();
 		font = new Font("Arial", Font.PLAIN, 12);
@@ -118,6 +120,8 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		final String BallDestroy = "BD";
 		final String BallCord = "B";
 		final String serverDC = "ServerErrorDC";
+		final String Death = "D";
+		final String Reset = "Reset";
 		public void process(String[] data){
 			int CP=1;
 			while(CP<data.length){
@@ -186,6 +190,23 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 					comm=null;
 					connected=false; 
 					CP = CP+1;
+				}else if(data[CP].equals(Death)){
+					//name
+					for(int x=0;x<players.size();x++){
+						if(players.get(x).getName().equals(data[CP+1])){
+							players.get(x).Died();
+						}
+					}
+					if(username.equals(data[CP+1])){
+						Dead=true; 
+					}
+					CP=CP+2;
+				}else if(data[CP].equals(Reset)){
+					for(int x=0;x<players.size();x++){
+						players.get(x).revive();
+					}
+					Dead = false;
+					CP = CP+1;
 				}
 			
 			}
@@ -215,9 +236,13 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			g.setColor(players.get(x).getColor());
 			FontMetrics fm   = g.getFontMetrics(font);
 			java.awt.geom.Rectangle2D rect = fm.getStringBounds(players.get(x).getName(), g);
-			g.drawString(players.get(x).getName(), (int) (players.get(x).getX()-(rect.getWidth()/2)), players.get(x).getY()-25);
-
-			g.drawRect(players.get(x).getCords()[0]-5, players.get(x).getCords()[1]-25, 10, 25);
+			if(!players.get(x).isDead()){
+				g.drawString(players.get(x).getName(), (int) (players.get(x).getX()-(rect.getWidth()/2)), players.get(x).getY()-25);
+				g.drawRect(players.get(x).getCords()[0]-5, players.get(x).getCords()[1]-25, 10, 25);
+			}else{
+				g.drawString(players.get(x).getName(), (int) (players.get(x).getX()-(rect.getWidth()/2)), players.get(x).getY());
+			}
+			
 		}
 		chatBox.draw(g);
 		g.setColor(Color.BLACK);
@@ -320,7 +345,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 				}
 			}
 		}
-		if(!typing){
+		if(!typing && !Dead){
 			switch(arg0.getKeyCode()){
 			case KeyEvent.VK_W:
 				comm.send(System.currentTimeMillis() + "~M~"+username+"~WPress");
@@ -342,20 +367,21 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	@Override
 	public void keyReleased(KeyEvent arg0) {
 		// TODO Auto-generated method stub
-		switch(arg0.getKeyCode()){
-		case KeyEvent.VK_W:
-			comm.send(System.currentTimeMillis() + "~M~"+username+"~WRelease");
-			break;
-		case KeyEvent.VK_A:
-			comm.send(System.currentTimeMillis() + "~M~"+username+"~ARelease");
-			break;
-		case KeyEvent.VK_S:
-			comm.send(System.currentTimeMillis() + "~M~"+username+"~SRelease");
-			break;
-		case KeyEvent.VK_D:
-			comm.send(System.currentTimeMillis() + "~M~"+username+"~DRelease");
-			break;
-			
+		if(true){
+			switch(arg0.getKeyCode()){
+			case KeyEvent.VK_W:
+				comm.send(System.currentTimeMillis() + "~M~"+username+"~WRelease");
+				break;
+			case KeyEvent.VK_A:
+				comm.send(System.currentTimeMillis() + "~M~"+username+"~ARelease");
+				break;
+			case KeyEvent.VK_S:
+				comm.send(System.currentTimeMillis() + "~M~"+username+"~SRelease");
+				break;
+			case KeyEvent.VK_D:
+				comm.send(System.currentTimeMillis() + "~M~"+username+"~DRelease");
+				break;
+			}
 		}
 	}
 	String Typed="";

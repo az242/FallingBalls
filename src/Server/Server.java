@@ -21,9 +21,10 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
-
+import Button.Button;
 import Chat.ArrayChat;
 import Chat.Message;
 import DataTypes.Ball;
@@ -34,14 +35,27 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	ArrayChat userList;
 	ArrayList<Player> players;
 	ArrayList<Ball> balls;
+	ArrayList<Button> buttons;
 	ServerConnection interwebs;
 	BGenerator BG;
 	public Server(){
+		buttons = new ArrayList<Button>();
+		buttons.add(new Button(770,10,50,20,"Radius"));
+		buttons.add(new Button(770,35,50,20,"dX"));
+		buttons.add(new Button(770,60,50,20,"dY"));
+		buttons.add(new Button(770,85,50,20,"Red"));
+		buttons.add(new Button(770,110,50,20,"Green"));
+		buttons.add(new Button(770,135,50,20,"Blue"));
+		buttons.add(new Button(770,160,50,20,"Jump"));
 		addKeyListener(this);
 		setFocusable(true);
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		setSize(1000,500);
+		radi = 30;
+		dyC = 380;
+		dxC = 195;
+		rc = 255;bc = 255;gc = 255;
 		balls=new ArrayList<Ball>();
 		players = new ArrayList<Player>();
 		userList = new ArrayChat(600,0, 750,450,32,false);//used to display stuff about users
@@ -59,7 +73,8 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	}
 	ServerConnection comm;
 	public void startServer(){
-		 comm = new ServerConnection(9999);
+		serverLog.addMessage(new Message("Server","Starting Server..."));
+		comm = new ServerConnection(9999);
 		Thread servertest=new Thread(comm);
 		servertest.start();
 	}
@@ -68,19 +83,32 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		balls = new ArrayList<Ball>();
 	}
 	public void reset(){
+		if(BG==null)
+			return;
 		BG.stop();
 		BG = null;
 		String message = System.currentTimeMillis()+"";
 		for(int x=0;x<balls.size();x++){
 			message = message + "~BD~"+balls.get(x).getID();
 		}
+		for(int x=0;x<players.size();x++){
+			players.get(x).revive();
+		}
+		message = message + "~Reset";
 		comm.send(message);
+		serverLog.addMessage(new Message("Server","Reseting games."));
 		balls = new ArrayList<Ball>();
 	}
+	int radi;
+	int dyC;
+	int dxC;
+	int rc;
+	int bc;
+	int gc;
 	public class BGenerator implements ActionListener{
+
 		Timer myTimer;
 		public BGenerator(){
-			
 			myTimer=new Timer(100, this);
 			myTimer.start();
 			serverLog.addMessage(new Message("Server","Starting ball Generator."));
@@ -91,14 +119,22 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		public void createBall(){
 			//x y r C dy dx
 			int x= (int) (Math.random()*1000);
-			int radius = (int) (Math.random()*30);
+			int radius = (int) (Math.random()*radi)+5;
 			int y = 0-radius;
-			int dy = (int) (Math.random()*500);
-			int dx = (int) (Math.random()*500);
+			int dy = (int) (Math.random()*dyC)+20;
+			int dx = (int) (Math.random()*dxC)+5;
 			if(Math.random()>.5){
 				dx = -dx;
 			}
-			Color col = new Color((int)(Math.random()*255),(int)(Math.random()*255),(int)(Math.random()*255));
+			int Red = (int)(Math.random()*rc);
+			int Blue =  (int)(Math.random()*bc);
+			int Green=  (int)(Math.random()*gc);
+			while((Red + Blue + Green) < 100){
+				Red = (int)(Math.random()*rc);
+				Blue =  (int)(Math.random()*bc);
+				Green=  (int)(Math.random()*gc);
+			}
+			Color col = new Color(Red,Green,Blue);
 			String id = rn();
 			long time = System.currentTimeMillis();
 			balls.add(new Ball(id,x,y,radius,col,dy,dx,time));
@@ -115,8 +151,8 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		DatagramSocket serverSock;
 		public ServerConnection(int port){
 			serverLog.addMessage(new Message("System", "Attempting to start socket at port "+port));
-			
-			 try {
+
+			try {
 				serverSock = new DatagramSocket(port);
 				serverLog.addMessage(new Message("System", "Socket Established"));
 			} catch (SocketException e) {
@@ -125,7 +161,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 				//serverLog.addMessage(new Message("ERROR", e.getMessage(),Color.RED));
 				run= false;
 			}
-			 run = true;
+			run = true;
 		}
 		@Override
 		public void run() {
@@ -198,7 +234,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					}else{
 						serverLog.addMessage(new Message("System","User tried to connect with " + data[CP+1] + ", already exists!"));
 						send(System.currentTimeMillis() +"~"+"Failed"+"~"+data[CP+1],inetAddress,port);
-						
+
 					}
 					//send data to all players
 					CP = CP+8;
@@ -271,7 +307,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				//serverLog.addMessage(new Message("ERROR", "Failed to send packet: "+e.getMessage(),Color.RED));
-				
+
 			}
 		}
 		public void send(String data){
@@ -279,14 +315,14 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			sendData= data.getBytes();
 			for(int x=0;x<players.size();x++){
 				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, players.get(x).getIP(),players.get(x).getPort());
-//				/System.out.println(sendPacket.getAddress().toString()+": "+sendPacket.getPort());
+				//				/System.out.println(sendPacket.getAddress().toString()+": "+sendPacket.getPort());
 				try {
 					serverSock.send(sendPacket);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 					//serverLog.addMessage(new Message("ERROR", "Failed to send packet: "+e.getMessage(),Color.RED));
-					
+
 				}
 			}
 		}
@@ -314,14 +350,41 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		}catch(Exception ex){
 			System.out.println("error painting");
 		}
-		
+
 	}
-	
 	public void paint(Graphics g){
 		setSize(1000,500);
 		serverLog.draw(g);
 		userList.draw(g);
 		g.drawString("balls: "+balls.size(), 10, 50);
+		for(int x=0;x<buttons.size();x++){
+			buttons.get(x).draw(g);
+			String input;
+			switch(buttons.get(x).getText()){
+			case "Radius":
+				g.drawString(radi+"", buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
+				break;
+			case "dX":
+				g.drawString(dxC+"", buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
+				break;
+			case "dY":
+				g.drawString(dyC+"", buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
+				break;
+			case "Red":
+				g.drawString(rc+"", buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
+				break;
+			case "Green":
+				g.drawString(gc+"", buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
+				break;
+			case "Blue":
+				g.drawString(bc+"", buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
+				break;
+			case "Jump":
+				g.drawString(Player.jumpConstant+"", buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
+				break;
+
+			}
+		}
 	}
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
@@ -333,7 +396,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		for(int x=0;x<players.size();x++){
 			players.get(x).setCords((int) (players.get(x).getX()+((double)players.get(x).getDx()*delta)),players.get(x).getY()+players.get(x).getDy());
 			if(players.get(x).isJumping()){
-				if(players.get(x).getDy()==10){
+				if(players.get(x).getDy()==players.get(x).jumpConstant){
 					players.get(x).setCords(players.get(x).getX(), 450);//Magic number GROUND FLOOR
 					players.get(x).stopJump();
 				}else{
@@ -343,17 +406,26 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			userList.chat.get(x).setMessage(players.get(x).getX()+", "+players.get(x).getY());
 			message= message+"~C~"+players.get(x).getName()+"~"+players.get(x).getX()+"~"+players.get(x).getY();
 		}
-		
-		for(int x=0;x<balls.size();x++){
-			if((balls.get(x).getX()+balls.get(x).getRadius())<0 || (balls.get(x).getX()-balls.get(x).getRadius())>1000|| (balls.get(x).getY()-balls.get(x).getRadius())>500){
-				comm.send(System.currentTimeMillis()+"~BD~"+balls.get(x).getID());
-				balls.remove(x);
-			}else{
-				balls.get(x).update(delta);
-				//message = message + "~B~"+balls.get(x).getID()+"~"+balls.get(x).getX()+"~"+balls.get(x).getY();
+		try{
+			for(int x=0;x<balls.size();x++){
+				if((balls.get(x).getX()+balls.get(x).getRadius())<0 || (balls.get(x).getX()-balls.get(x).getRadius())>1000|| (balls.get(x).getY()-balls.get(x).getRadius())>500){
+					comm.send(System.currentTimeMillis()+"~BD~"+balls.get(x).getID());
+					balls.remove(x);
+				}else{
+					balls.get(x).update(delta);
+					for(int y=0;y<players.size();y++){
+						//hit detection;
+						if(!players.get(y).isDead() && balls.get(x).intersects(players.get(y).getRect())){
+							message = message +"~D~"+players.get(y).getName();
+							players.get(y).Died();
+						}
+					}
+					//message = message + "~B~"+balls.get(x).getID()+"~"+balls.get(x).getX()+"~"+balls.get(x).getY();
+				}
 			}
+		}catch(Exception e){
+			e.printStackTrace();
 		}
-		
 		if(comm!=null && comm.run==true && message.length()>0){
 			comm.send(message);//System.out.println("uhhh");
 		}
@@ -362,35 +434,74 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		if(comm==null)
-			startServer();
-		else
-			serverLog.addMessage(new Message("ERROR","Server already active!",Color.RED));
+
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mouseExited(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+		//int radi;
+		for(int x=0;x<buttons.size();x++){
+			if(buttons.get(x).contains(arg0.getX(), arg0.getY())){
+				String input;
+				switch(buttons.get(x).getText()){
+				case "Radius":
+					input = JOptionPane.showInputDialog("Radius?");
+					if(input!=null && input.length()>0)
+						radi = Integer.parseInt(input);
+					break;
+				case "dX":
+					input = JOptionPane.showInputDialog("Delta X?");
+					if(input!=null && input.length()>0)
+						dxC = Integer.parseInt(input);
+					break;
+				case "dY":
+					input = JOptionPane.showInputDialog("Delta Y?");
+					if(input!=null && input.length()>0)
+						dyC = Integer.parseInt(input);
+					break;
+				case "Red":
+					input = JOptionPane.showInputDialog("Red?");
+					if(input!=null && input.length()>0)
+						rc = Integer.parseInt(input);
+					break;
+				case "Green":
+					input = JOptionPane.showInputDialog("Green?");
+					if(input!=null && input.length()>0)
+						gc = Integer.parseInt(input);
+					break;
+				case "Blue":
+					input = JOptionPane.showInputDialog("Blue?");
+					if(input!=null && input.length()>0)
+						bc = Integer.parseInt(input);
+					break;
+				case "Jump":
+					input = JOptionPane.showInputDialog("Jump Height?");
+					if(input!=null && input.length()>0)
+						Player.jumpConstant = Integer.parseInt(input);
+					break;
+
+				}
+			}
+		}
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 	public long getTime(){
 		return System.currentTimeMillis();
@@ -437,14 +548,14 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	@Override
 	public void mouseDragged(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 	@Override
 	public void mouseMoved(MouseEvent arg0) {
 		// TODO Auto-generated method stub
 		if(serverLog.contains(arg0.getX(), arg0.getY())){
 			serverLog.reset();
-			
+
 		}
 	}
 	@Override
@@ -454,16 +565,21 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			startBalls();
 		}else if(arg0.getKeyCode()==KeyEvent.VK_K){
 			reset();
+		}else if(arg0.getKeyCode() == KeyEvent.VK_S){
+			if(comm==null)
+				startServer();
+			else
+				serverLog.addMessage(new Message("ERROR","Server already active!",Color.RED));
 		}
 	}
 	@Override
 	public void keyReleased(KeyEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 	@Override
 	public void keyTyped(KeyEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
