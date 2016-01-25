@@ -208,7 +208,12 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					CP = CP+4;
 				}else if(data[CP].equals(Power)){
 					//name x y power
-					send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4]);
+					//send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4]);
+					for(int x=0;x<players.size();x++){
+						if(players.get(x).getName().equals(data[CP+1])){
+							players.get(x).setCords(Integer.parseInt(data[CP+2]),Integer.parseInt(data[CP+3]));
+						}
+					}
 					CP = CP+5;
 				}else if(data[CP].equals(Connect)){
 					//name x y R G B power
@@ -442,6 +447,9 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 				players.get(x).setCords(5,players.get(x).getY());
 			}else if(players.get(x).getX()>=995 && players.get(x).getDx()>0){
 				players.get(x).setCords(995, players.get(x).getY());
+			}
+			if(players.get(x).getY()>450){
+				players.get(x).setCords(players.get(x).getX(), 450);
 			}
 			userList.chat.get(x).setMessage(players.get(x).getX()+", "+players.get(x).getY());
 			message= message+"~C~"+players.get(x).getName()+"~"+players.get(x).getX()+"~"+players.get(x).getY();

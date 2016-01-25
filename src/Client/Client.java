@@ -40,6 +40,8 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	boolean connected= false;
 	boolean Dead;
 	private Font font;
+	int mX;
+	int mY;
 	public Client(){
 		addMouseMotionListener(this);
 		chatBox = new ArrayChat(700,0,1000,250,20,true);
@@ -51,13 +53,15 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		balls= new ArrayList<Ball>();
 		players = new ArrayList<Player>();
 		font = new Font("Arial", Font.PLAIN, 12);
+		mX = 0;
+		mY= 0;
 		Timer myTimer;
 		myTimer=new Timer(30, this);
 		myTimer.start();
 	}
 	ClientConnection comm;
 	public void startConnection(){
-		comm=new ClientConnection("47.20.145.40");
+		comm=new ClientConnection("172.16.38.8");
 		Thread servertest=new Thread(comm);
 		servertest.start();
 		String test = System.currentTimeMillis() + "~Connect"+"~"+username+"~500~450~255~0~100~1";
@@ -239,6 +243,10 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		g.setFont(font);
 		g.setColor(Color.BLACK);
 		g.drawLine(0,450,1000,450);
+		if(!connected)
+			return;
+		g.setColor(new Color(50,50,50,100));
+		g.drawRect(mX-5, players.get(0).getY()-25, 10, 25);
 		for(int x=0;x<balls.size();x++){
 			balls.get(x).draw(g);
 		}
@@ -389,7 +397,10 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			case KeyEvent.VK_D:
 				comm.send(System.currentTimeMillis() + "~M~"+username+"~DPress");
 				break;
-				
+			case KeyEvent.VK_SPACE:
+				//power1
+				comm.send(System.currentTimeMillis() + "~P~"+username+"~"+mX+"~"+players.get(0).getY()+"~"+players.get(0).getPower());
+				break; 
 			}
 			
 		}
@@ -446,6 +457,8 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		if(chatBox.contains(e.getX(), e.getY())){
 			chatBox.reset();
 		}
+		mX = e.getX();
+		mY = e.getY();
 	}
 	public long getTime(){
 		return System.currentTimeMillis();
