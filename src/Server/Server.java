@@ -38,6 +38,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	ArrayList<Button> buttons;
 	ServerConnection interwebs;
 	BGenerator BG;
+	int TeleportCD = 10;
 	public Server(){
 		buttons = new ArrayList<Button>();
 		buttons.add(new Button(770,10,50,20,"Radius"));
@@ -48,6 +49,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		buttons.add(new Button(770,135,50,20,"Blue"));
 		buttons.add(new Button(770,160,50,20,"Jump"));
 		buttons.add(new Button(770,185,50,20,"Move"));
+		buttons.add(new Button(770,210,50,20,"TP CD"));
 		addKeyListener(this);
 		setFocusable(true);
 		addMouseListener(this);
@@ -207,11 +209,12 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					//SEND DATA TO ALL OTHER PLAYERS
 					CP = CP+4;
 				}else if(data[CP].equals(Power)){
-					//name x y power
+					//name x y power time
 					//send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4]);
 					for(int x=0;x<players.size();x++){
 						if(players.get(x).getName().equals(data[CP+1])){
 							players.get(x).setCords(Integer.parseInt(data[CP+2]),Integer.parseInt(data[CP+3]));
+							send(data[0]+"~"+data[CP]+"~"+data[CP+1]+"~"+data[CP+2]+"~"+data[CP+3]+"~"+data[CP+4]+"~"+TeleportCD,inetAddress,port);
 						}
 					}
 					CP = CP+5;
@@ -423,6 +426,9 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			case "Move":
 				g.drawString(Player.moveConstant+"", buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
 				break;
+			case "TP CD":
+				g.drawString(TeleportCD+"",  buttons.get(x).getX()+buttons.get(x).getWidth(), buttons.get(x).getY()+buttons.get(x).getHeight());
+				break;
 			}
 		}
 	}
@@ -545,6 +551,10 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					if(input!=null && input.length()>0)
 						Player.moveConstant = Integer.parseInt(input);
 					break;
+				case "TP CD":
+					input = JOptionPane.showInputDialog("Move Speed?");
+					if(input!=null && input.length()>0)
+						TeleportCD = Integer.parseInt(input);
 				}
 			}
 		}

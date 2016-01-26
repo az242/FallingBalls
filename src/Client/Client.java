@@ -37,6 +37,8 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	ArrayList<Ball> balls;
 	ArrayChat chatBox;
 	String username="test";
+	boolean skill=true;
+	double time=0;
 	boolean connected= false;
 	boolean Dead;
 	private Font font;
@@ -61,7 +63,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	}
 	ClientConnection comm;
 	public void startConnection(){
-		comm=new ClientConnection("172.16.38.8");
+		comm=new ClientConnection("127.0.0.1");
 		Thread servertest=new Thread(comm);
 		servertest.start();
 		String test = System.currentTimeMillis() + "~Connect"+"~"+username+"~500~450~255~0~100~1";
@@ -141,7 +143,14 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 					}
 					CP = CP+4;
 				}else if(data[CP].equals(Power)){
-					//name x y power
+					//name x y power time
+					for(int x=0;x<players.size();x++){
+						if(players.get(x).getName().equals(data[CP+1])){
+							skill = false;
+							time = Integer.parseInt(data[CP+5]);
+							return;
+						}
+					}
 					CP = CP+5;
 				}else if(data[CP].equals(Connect)){
 					//name x y R G B power
@@ -274,6 +283,8 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		chatBox.draw(g);
 		g.setColor(Color.BLACK);
 		g.drawString(Typed, chatBox.getX(), chatBox.getHeight()+12);
+		if(!skill)
+			g.drawString((int)(time/60)+":"+(int)(time%60), mX, mY);
 	}
 	
 	private Image dbImage; 
@@ -307,6 +318,11 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		// TODO Auto-generated method stub
 		repaint();
 		double delta= (double)getDelta()/1000.0;
+		if(time>0){
+			time = time - delta;
+		}else{
+			skill = true;
+		}
 		try{
 			for(int x=0;x<balls.size();x++){
 				balls.get(x).update((System.currentTimeMillis()-balls.get(x).getTime())/1000.0);
@@ -399,7 +415,9 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 				break;
 			case KeyEvent.VK_SPACE:
 				//power1
-				comm.send(System.currentTimeMillis() + "~P~"+username+"~"+mX+"~"+players.get(0).getY()+"~"+players.get(0).getPower());
+				if(skill){
+					comm.send(System.currentTimeMillis() + "~P~"+username+"~"+mX+"~"+players.get(0).getY()+"~"+players.get(0).getPower());
+				}
 				break; 
 			}
 			
