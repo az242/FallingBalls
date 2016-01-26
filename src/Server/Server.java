@@ -38,8 +38,17 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	ArrayList<Button> buttons;
 	ServerConnection interwebs;
 	BGenerator BG;
-	int TeleportCD = 10;
+	int TeleportCD;
+	int radi;
+	int dyC;
+	int dxC;
+	int rc;
+	int bc;
+	int gc;
+	ServerConnection comm;
+	long lastTime;
 	public Server(){
+		lastTime = getTime();
 		buttons = new ArrayList<Button>();
 		buttons.add(new Button(770,10,50,20,"Radius"));
 		buttons.add(new Button(770,35,50,20,"dX"));
@@ -59,6 +68,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		dyC = 380;
 		dxC = 195;
 		rc = 255;bc = 255;gc = 255;
+		TeleportCD = 10;
 		balls=new ArrayList<Ball>();
 		players = new ArrayList<Player>();
 		userList = new ArrayChat(600,0, 750,450,32,false);//used to display stuff about users
@@ -74,7 +84,6 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			comm.send(System.currentTimeMillis()+"~ServerErrorDC");
 		System.out.println("Exited");
 	}
-	ServerConnection comm;
 	public void startServer(){
 		serverLog.addMessage(new Message("Server","Starting Server..."));
 		comm = new ServerConnection(9999);
@@ -98,12 +107,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		serverLog.addMessage(new Message("Server","Reseting games."));
 		balls = new ArrayList<Ball>();
 	}
-	int radi;
-	int dyC;
-	int dxC;
-	int rc;
-	int bc;
-	int gc;
+
 	public class BGenerator implements ActionListener{
 
 		Timer myTimer;
@@ -368,6 +372,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			}
 		}
 	}
+	
 	private Image dbImage; 
 	private Graphics dbg; 
 	@Override
@@ -432,6 +437,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			}
 		}
 	}
+	
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		// TODO Auto-generated method stub
@@ -490,19 +496,16 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	public void mouseClicked(MouseEvent arg0) {
 
 	}
-
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
 		// TODO Auto-generated method stub
 
 	}
-
 	@Override
 	public void mouseExited(MouseEvent arg0) {
 		// TODO Auto-generated method stub
 
 	}
-
 	@Override
 	public void mousePressed(MouseEvent arg0) {
 		// TODO Auto-generated method stub
@@ -559,25 +562,27 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			}
 		}
 	}
-
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
 		// TODO Auto-generated method stub
 
 	}
+	
 	public long getTime(){
 		return System.currentTimeMillis();
 	}
-	long lastTime = getTime();
+	
 	public int getDelta(){
 		long time=getTime();
 		int delta=(int)(time-lastTime);
 		lastTime=time;
 		return (Integer) delta;
 	}
+	
 	public int stn(String input){//string to number
 		return Integer.parseInt(input);
 	}
+	
 	public static String rn(){
 		String hex="";
 		for(int x=0;x<7;x++){
@@ -595,6 +600,7 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		}
 		return hex;
 	}
+	
 	public Power getPower(int x){
 		switch(x){
 		case 0:

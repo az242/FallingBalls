@@ -36,7 +36,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	ArrayList<Player> players;
 	ArrayList<Ball> balls;
 	ArrayChat chatBox;
-	String username="test";
+	String username;
 	boolean skill=true;
 	double time=0;
 	boolean connected= false;
@@ -44,7 +44,12 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	private Font font;
 	int mX;
 	int mY;
+	ClientConnection comm;
+	String Typed;
+	long lastTime;
 	public Client(){
+		lastTime = getTime();
+		Typed="";
 		addMouseMotionListener(this);
 		chatBox = new ArrayChat(700,0,1000,250,20,true);
 		setFocusable(true);
@@ -61,7 +66,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		myTimer=new Timer(30, this);
 		myTimer.start();
 	}
-	ClientConnection comm;
+
 	public void startConnection(){
 		comm=new ClientConnection("127.0.0.1");
 		Thread servertest=new Thread(comm);
@@ -231,7 +236,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 					}
 					CP = CP+2;
 				}
-			
+
 			}
 		}
 		public void send(String packet){
@@ -245,8 +250,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			}
 		}
 	}
-	
-	
+
 	public void paint(Graphics g){
 		setSize(1000,500);
 		g.setFont(font);
@@ -286,7 +290,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		if(!skill)
 			g.drawString((int)(time/60)+":"+(int)(time%60), mX, mY);
 	}
-	
+
 	private Image dbImage; 
 	private Graphics dbg; 
 	@Override
@@ -310,9 +314,9 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		}catch(Exception ex){
 			System.out.println("error painting");
 		}
-		
+
 	}
-	
+
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		// TODO Auto-generated method stub
@@ -329,26 +333,26 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 				balls.get(x).setTime(System.currentTimeMillis());
 			}
 		}catch(Exception E){
-			
+
 		}
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mouseExited(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -366,8 +370,9 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
+	
 	@Override
 	public void keyPressed(KeyEvent arg0) {
 		if(!connected)
@@ -387,7 +392,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		if(typing && arg0.getKeyCode()!=KeyEvent.VK_ENTER && arg0.getKeyCode()!=KeyEvent.VK_SHIFT){
 			if(arg0.getKeyCode()==KeyEvent.VK_BACK_SPACE){
 				if(Typed.length()==0){
-					
+
 				}else if(Typed.length()==1){
 					Typed = "";
 				}else{
@@ -420,13 +425,12 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 				}
 				break; 
 			}
-			
+
 		}
 		if(arg0.getKeyCode()==KeyEvent.VK_R && !typing){
 			comm.send(System.currentTimeMillis()+"~R~"+username);
 		}
 	}
-
 	@Override
 	public void keyReleased(KeyEvent arg0) {
 		// TODO Auto-generated method stub
@@ -447,10 +451,34 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			}
 		}
 	}
-	String Typed="";
 	@Override
 	public void keyTyped(KeyEvent arg0) {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+
+	}
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		// TODO Auto-generated method stub
+		if(chatBox.contains(e.getX(), e.getY())){
+			chatBox.reset();
+		}
+		mX = e.getX();
+		mY = e.getY();
+	}
+	
+	public long getTime(){
+		return System.currentTimeMillis();
+	}
+	public int getDelta(){
+		long time=getTime();
+		int delta=(int)(time-lastTime);
+		lastTime=time;
+		return (Integer) delta;
 	}
 	public Power getPower(int x){
 		switch(x){
@@ -463,29 +491,5 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		default:
 			return null;
 		}
-	}
-	@Override
-	public void mouseDragged(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		// TODO Auto-generated method stub
-		if(chatBox.contains(e.getX(), e.getY())){
-			chatBox.reset();
-		}
-		mX = e.getX();
-		mY = e.getY();
-	}
-	public long getTime(){
-		return System.currentTimeMillis();
-	}
-	long lastTime = getTime();
-	public int getDelta(){
-		long time=getTime();
-		int delta=(int)(time-lastTime);
-		lastTime=time;
-		return (Integer) delta;
 	}
 }
