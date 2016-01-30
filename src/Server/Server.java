@@ -45,9 +45,11 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	int rc;
 	int bc;
 	int gc;
+	int mX,mY;
 	ServerConnection comm;
 	long lastTime;
 	public Server(){
+		mX = 0;mY = 0;
 		lastTime = getTime();
 		buttons = new ArrayList<Button>();
 		buttons.add(new Button(770,10,50,20,"Radius"));
@@ -59,6 +61,9 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		buttons.add(new Button(770,160,50,20,"Jump"));
 		buttons.add(new Button(770,185,50,20,"Move"));
 		buttons.add(new Button(770,210,50,20,"TP CD"));
+		buttons.add(new Button(50,100,100,50,"~US~Ptart Server"));
+		buttons.add(new Button(50,155,100,50,"~UR~Pestart Game"));
+		buttons.add(new Button(50,210,100,50,"~UB~Pegin Game"));
 		addKeyListener(this);
 		setFocusable(true);
 		addMouseListener(this);
@@ -400,9 +405,13 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	}
 	public void paint(Graphics g){
 		setSize(1000,500);
+		
 		serverLog.draw(g);
 		userList.draw(g);
 		g.drawString("balls: "+balls.size(), 10, 50);
+		g.drawString("S to start server", 10, 60);
+		g.drawString("K to restart games", 10, 70);
+		g.drawString("J to start games", 10, 80);
 		for(int x=0;x<buttons.size();x++){
 			buttons.get(x).draw(g);
 			String input;
@@ -558,6 +567,19 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					input = JOptionPane.showInputDialog("Move Speed?");
 					if(input!=null && input.length()>0)
 						TeleportCD = Integer.parseInt(input);
+					break;
+				case "Start Server":
+					if(comm==null)
+						startServer();
+					else
+						serverLog.addMessage(new Message("ERROR","Server already active!",Color.RED));
+					break;
+				case "Restart Game":
+					reset();
+					break;
+				case "Begin Game":
+					startBalls();
+					break;
 				}
 			}
 		}
@@ -628,10 +650,9 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 	}
 	@Override
 	public void keyPressed(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-		if(arg0.getKeyCode()==KeyEvent.VK_J){
+		if(arg0.getKeyCode()==KeyEvent.VK_B){
 			startBalls();
-		}else if(arg0.getKeyCode()==KeyEvent.VK_K){
+		}else if(arg0.getKeyCode()==KeyEvent.VK_R){
 			reset();
 		}else if(arg0.getKeyCode() == KeyEvent.VK_S){
 			if(comm==null)

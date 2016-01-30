@@ -36,39 +36,45 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	ArrayList<Player> players;
 	ArrayList<Ball> balls;
 	ArrayChat chatBox;
-	String username;
-	boolean skill=true;
-	double time=0;
-	boolean connected= false;
-	boolean Dead;
 	private Font font;
 	int mX;
 	int mY;
 	ClientConnection comm;
 	String Typed;
 	long lastTime;
+	//user vars
+	String username;
+	boolean skill;
+	double time;
+	boolean connected;
+	boolean Dead;
+	//end user vars
+	
 	public Client(){
 		lastTime = getTime();
 		Typed="";
-		addMouseMotionListener(this);
-		chatBox = new ArrayChat(700,0,1000,250,20,true);
-		setFocusable(true);
-		addMouseListener(this);
-		addKeyListener(this);
-		typing=false;
-		Dead = false;
 		balls= new ArrayList<Ball>();
 		players = new ArrayList<Player>();
+		chatBox = new ArrayChat(700,0,1000,250,20,true);
 		font = new Font("Arial", Font.PLAIN, 12);
 		mX = 0;
 		mY= 0;
+		connected= false;
+		typing=false;
+		Dead = false;
+		skill=true;
+		time=0;
+		addMouseMotionListener(this);
+		setFocusable(true);
+		addMouseListener(this);
+		addKeyListener(this);
 		Timer myTimer;
 		myTimer=new Timer(30, this);
 		myTimer.start();
 	}
 
 	public void startConnection(){
-		comm=new ClientConnection("127.0.0.1");
+		comm=new ClientConnection("172.16.38.8");
 		Thread servertest=new Thread(comm);
 		servertest.start();
 		String test = System.currentTimeMillis() + "~Connect"+"~"+username+"~500~450~255~0~100~1";
