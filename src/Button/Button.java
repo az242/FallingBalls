@@ -44,7 +44,7 @@ public class Button {
 		//returns string without formating chars
 		String formated="";
 		for(int x=0;x<text.length();x++){
-			if(text.charAt(x)=='~'){
+			if(text.charAt(x)=='`'){
 				if(text.charAt(x+1)=='U'){
 					x++;
 				}else if(text.charAt(x+1)=='B'){
@@ -82,7 +82,7 @@ public class Button {
 		boolean underlined=false;
 		for(int x=0,w=(int)(this.x+((width-rect.getWidth())/2));x<text.length();x++){
 			rect = plain.getStringBounds(text.charAt(x)+"", g);
-			if(text.charAt(x)=='~'){
+			if(text.charAt(x)=='`' && (text.charAt(x+1)=='U' || text.charAt(x+1)=='B' || text.charAt(x+1)=='I' || text.charAt(x+1)=='P') ){
 				//detect escape char
 				if(text.charAt(x+1)=='U'){//if Underlined
 					rect = plain.getStringBounds(text.charAt(x)+"", g);
@@ -119,5 +119,8 @@ public class Button {
 		}
 		g.setFont(font);
 		//reset font to default
+	}
+	public void drawFText(Graphics g, String Ftext){
+		
 	}
 }

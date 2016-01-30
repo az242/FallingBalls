@@ -61,9 +61,9 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 		buttons.add(new Button(770,160,50,20,"Jump"));
 		buttons.add(new Button(770,185,50,20,"Move"));
 		buttons.add(new Button(770,210,50,20,"TP CD"));
-		buttons.add(new Button(50,100,100,50,"~US~Ptart Server"));
-		buttons.add(new Button(50,155,100,50,"~UR~Pestart Game"));
-		buttons.add(new Button(50,210,100,50,"~UB~Pegin Game"));
+		buttons.add(new Button(50,100,100,50,"`US`Ptart Server"));
+		buttons.add(new Button(50,155,100,50,"`UR`Pestart Game"));
+		buttons.add(new Button(50,210,100,50,"`UB`Pegin Game"));
 		addKeyListener(this);
 		setFocusable(true);
 		addMouseListener(this);
@@ -268,9 +268,11 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 					CP = CP+2;
 				}else if(data[CP].equals(Chat)){
 					//name message R G B
-					serverLog.addMessage(new Message(data[CP+1],data[CP+2],new Color(Integer.parseInt(data[CP+3]),Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]))));
-					//send data to all other players
-					send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4] +"~"+ data[CP+5]);
+					if(!chatCommands(data[CP+2])){
+						//send data to all other players
+						serverLog.addMessage(new Message(data[CP+1],data[CP+2],new Color(Integer.parseInt(data[CP+3]),Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]))));
+						send(data[0]+"~" + data[CP]+"~"+ data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+data[CP+4] +"~"+ data[CP+5]);
+					}
 					CP = CP+6;
 				}else if(data[CP].equals(Move)){
 					//name keyPress
@@ -377,7 +379,12 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			}
 		}
 	}
-	
+	public boolean chatCommands(String text){
+		if(text.charAt(0) == '/'){
+			return true;
+		}
+		return false;
+	}
 	private Image dbImage; 
 	private Graphics dbg; 
 	@Override

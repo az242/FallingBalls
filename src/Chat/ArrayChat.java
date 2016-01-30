@@ -78,7 +78,7 @@ public class ArrayChat {
 			FontMetrics fm   = g.getFontMetrics(font);
 			java.awt.geom.Rectangle2D rect = fm.getStringBounds(chat.get(chatEntry).getFormatedMessage(), g);
 			if(rect.getWidth()>Math.abs(x1-x2)){
-				java.awt.geom.Rectangle2D rect2 = fm.getStringBounds(chat.get(chatEntry).getUsername(), g);
+				java.awt.geom.Rectangle2D usernameRect = fm.getStringBounds(chat.get(chatEntry).getUsername(), g);
 				//if size of message is too large
 				String[] components = wrapAround(chat.get(chatEntry),fm,g);
 				if(fading)
@@ -86,10 +86,10 @@ public class ArrayChat {
 				else
 					g.setColor(Color.BLACK);
 				for(int y=components.length-1;y>0;y--){ //0 is first line, 1 is second, ect
-					g.drawString(components[y], (int) (x1+rect2.getWidth()), (int) (y2-((offset)*rect.getHeight())));
+					g.drawString(components[y], (int) (x1+usernameRect.getWidth()), (int) (y2-((offset)*rect.getHeight())));
 					offset++;
 				}
-				g.drawString(components[0], (int) (x1+rect2.getWidth()),  (int) (y2-((offset)*rect.getHeight())));
+				g.drawString(components[0], (int) (x1+usernameRect.getWidth()),  (int) (y2-((offset)*rect.getHeight())));
 				Color temp=chat.get(chatEntry).userColor;
 				if(fading)
 					g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),chat.get(chatEntry).getAlpha()));
@@ -100,23 +100,27 @@ public class ArrayChat {
 			}else{
 				//draw message into chat box;
 				Color temp=chat.get(chatEntry).userColor;
+				//fading
 				if(fading)
 					g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),chat.get(chatEntry).getAlpha()));
 				else
 					g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue()));
-				//g.setColor(new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),chat.get(chatEntry).getAlpha()));
-				java.awt.geom.Rectangle2D rect2 = fm.getStringBounds(chat.get(chatEntry).getUsername(), g);
+				//end fading
+				java.awt.geom.Rectangle2D usernameRect = fm.getStringBounds(chat.get(chatEntry).getUsername(), g);
 				
 				g.drawString(chat.get(chatEntry).getUsername(), x1, (int) (y2-((offset)*rect.getHeight())));
 				if(chat.get(chatEntry).getMessage()!=null && chat.get(chatEntry).getMessage().length()<=0){
+					//if message is not null or size 0
 					return;
 				}
+				//if fading
 				if(fading)
 					g.setColor(new Color(0,0,0,chat.get(chatEntry).getAlpha()));
 				else
 					g.setColor(Color.BLACK);
-				g.drawString(chat.get(chatEntry).getFMessage(), (int) (x1+rect2.getWidth()), (int) (y2-((offset)*rect.getHeight())));
-				//g.drawLine(x1, (int)(y2-((offset)*rect.getHeight())), (int) (x1+rect2.getWidth()),(int) (y2-((offset)*rect.getHeight())));
+				//end if fading
+				//draw
+				g.drawString(chat.get(chatEntry).getFMessage(), (int) (x1+usernameRect.getWidth()), (int) (y2-((offset)*rect.getHeight())));
 			}
 		}
 	}
