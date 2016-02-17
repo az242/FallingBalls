@@ -1,0 +1,19 @@
+This is a game I made using Java's Applet and Graphics libraries
+
+HOW-TO: 
+Run Server-
+	Run the ServerRun
+	start server
+
+Run Client-
+	Edit IP in code (around line 80)
+	Run ClientRun, (make sure server is active) 
+	Click on the Applet. Enter your username. 
+	You should be connected now.
+
+Playing the game-
+	WASD to move
+	R to Ready up (will start the game when 100% of players are ready) (this starts/resets the game)
+	SPACEBAR to use skill (automagicly assigns teleport to player, teleports to shadow character under mouse)
+	ENTER to start a message, Enter again to send. 
+	

@@ -146,7 +146,9 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 			String id = rn();
 			long time = System.currentTimeMillis();
 			balls.add(new Ball(id,x,y,radius,col,dy,dx,time));
-			comm.send(System.currentTimeMillis()+"~BC~"+id+"~"+x+"~"+y+"~"+radius+"~"+col.getRed()+"~"+col.getGreen()+"~"+col.getBlue()+"~"+dy+"~"+dx+"~"+time);
+			for(int w=0;w<players.size();w++){
+				comm.send((System.currentTimeMillis()-players.get(w).timeDelay)+"~BC~"+id+"~"+x+"~"+y+"~"+radius+"~"+col.getRed()+"~"+col.getGreen()+"~"+col.getBlue()+"~"+dy+"~"+dx+"~"+(System.currentTimeMillis()-players.get(w).timeDelay), players.get(w).getIP(), players.get(w).getPort());
+			}
 		}
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
@@ -236,8 +238,8 @@ public class Server extends Applet implements MouseListener,ActionListener,Mouse
 						}
 					}
 					if(accept){
-						serverLog.addMessage(new Message("System", data[CP+1] + " has connected to server."));
-						players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6])),inetAddress,port));
+						serverLog.addMessage(new Message("System", data[CP+1] + " has connected to server. Server Delay: "+(System.currentTimeMillis()-Long.parseLong(data[0]))));
+						players.add(new Player(Integer.parseInt(data[CP+2]), Integer.parseInt(data[CP+3]), data[CP+1],getPower(Integer.parseInt(data[CP+7])),new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6])),inetAddress,port,System.currentTimeMillis()-Long.parseLong(data[0])));
 						userList.addMessage(new Message(data[CP+1], data[CP+2] +", "+ data[CP+3],new Color(Integer.parseInt(data[CP+4]),Integer.parseInt(data[CP+5]),Integer.parseInt(data[CP+6])) ));
 						send(data[0]+"~"+data[CP]+"~" + data[CP+1]+"~"+ data[CP+2]+"~"+ data[CP+3]+"~"+ data[CP+4]+"~"+data[CP+5]+"~"+data[CP+6]+"~"+data[CP+7]);
 						String temp=System.currentTimeMillis()+"";

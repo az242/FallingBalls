@@ -8,6 +8,7 @@ public class Player {
 	public static int jumpConstant = 12;
 	public static int moveConstant = 100;
 	boolean ready;
+	public long timeDelay;
 	int x,y;
 	int dx,dy;
 	String username;
@@ -21,6 +22,22 @@ public class Player {
 	Color col;
 	public Player(int x,int y, String username, Power power,Color color,InetAddress ip,int port){
 		this.port=port;
+		timeDelay=0;
+		this.x=x;
+		this.IP=ip;
+		this.col=color;
+		this.y=y;
+		this.username=username;
+		this.power=power;
+		jumping = false;
+		dead = false;
+		ready= false;
+		//this.ID=ID;
+	}
+	public Player(int x,int y, String username, Power power,Color color,InetAddress ip,int port,long timeD){
+		this.port=port;
+		timeDelay=timeD;
+		System.out.println(timeD);
 		this.x=x;
 		this.IP=ip;
 		this.col=color;

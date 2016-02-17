@@ -74,7 +74,7 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 	}
 
 	public void startConnection(){
-		comm=new ClientConnection("172.16.38.8");
+		comm=new ClientConnection("127.0.0.1");
 		Thread servertest=new Thread(comm);
 		servertest.start();
 		String test = System.currentTimeMillis() + "~Connect"+"~"+username+"~500~450~255~0~100~1";
@@ -94,11 +94,13 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 		InetAddress IPAddress;
 		public ClientConnection(String IP){
 			run=true;
+			JOptionPane.showMessageDialog(null, "Starting to Connect");
 			try {
 				clientSocket = new DatagramSocket();
 			} catch (SocketException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, e.getMessage());
 			}
 			try {
 				IPAddress = InetAddress.getByName(IP);
@@ -106,7 +108,9 @@ public class Client extends Applet implements MouseListener, ActionListener,KeyL
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, e.getMessage());
 			}
+			JOptionPane.showMessageDialog(null, "Finished Connecting");
 		}
 		@Override
 		public void run() {
